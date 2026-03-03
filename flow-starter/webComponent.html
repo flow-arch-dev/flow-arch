@@ -1,0 +1,1437 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Components — Step by Step · Flow-Arch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@600;700;800&family=Newsreader:ital,wght@0,300;0,400;1,300&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --surface: #111;
+        --border: #1e1e1e;
+        --accent: #c8f542;
+        --dim: #8faa2a;
+        --text: #e2e2dc;
+        --muted: #5a5a54;
+        --code-bg: #141414;
+        --fn-mono: "DM Mono", monospace;
+        --fn-disp: "Syne", sans-serif;
+        --fn-body: "Newsreader", serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--fn-body);
+        font-size: 17px;
+        line-height: 1.75;
+      }
+
+      ::selection {
+        background: var(--accent);
+        color: #000;
+      }
+
+      /* ── LAYOUT ── */
+      .wrap {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        min-height: 100vh;
+      }
+
+      /* ── SIDEBAR ── */
+      aside {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        padding: 40px 24px;
+        background: var(--bg);
+      }
+
+      .sidebar-logo {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: capitalize;
+        margin-bottom: 8px;
+        display: block;
+        text-decoration: none;
+      }
+
+      .sidebar-back {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: var(--muted);
+        text-decoration: none;
+        display: block;
+        margin-bottom: 32px;
+        transition: color 0.15s;
+      }
+
+      .sidebar-back:hover {
+        color: var(--accent);
+      }
+
+      .sidebar-label {
+        font-family: var(--fn-mono);
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        margin-top: 28px;
+      }
+
+      .sidebar-nav {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .sidebar-nav a {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: block;
+        transition: all 0.15s;
+      }
+
+      .sidebar-nav a:hover,
+      .sidebar-nav a.active {
+        color: var(--accent);
+        background: rgba(200, 245, 66, 0.06);
+      }
+
+      /* ── MAIN ── */
+      main {
+        padding: 60px 64px 120px;
+        max-width: 780px;
+      }
+
+      /* ── BREADCRUMB ── */
+      .breadcrumb {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 40px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .breadcrumb a {
+        color: var(--accent);
+        text-decoration: none;
+        text-transform: capitalize;
+      }
+
+      .breadcrumb a:hover {
+        text-decoration: underline;
+      }
+      .breadcrumb span {
+        color: var(--muted);
+      }
+
+      /* ── STEP SECTIONS ── */
+      .step {
+        padding-top: 72px;
+        border-top: 1px solid var(--border);
+        margin-bottom: 0;
+      }
+
+      .step:first-of-type {
+        border-top: none;
+        padding-top: 0;
+      }
+
+      .step-tag {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .step-num {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        background: rgba(200, 245, 66, 0.1);
+        color: var(--accent);
+        border: 1px solid var(--dim);
+        padding: 3px 10px;
+        border-radius: 100px;
+        letter-spacing: 0.1em;
+      }
+
+      .step-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .step-label a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .step-label a:hover {
+        text-decoration: underline;
+      }
+
+      h1 {
+        font-family: var(--fn-disp);
+        font-size: clamp(36px, 5vw, 56px);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+        margin-bottom: 20px;
+      }
+
+      h1 em {
+        font-style: italic;
+        font-family: var(--fn-body);
+        font-weight: 300;
+        color: var(--accent);
+      }
+
+      h2 {
+        font-family: var(--fn-disp);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 16px;
+      }
+
+      h3 {
+        font-family: var(--fn-disp);
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+        margin: 24px 0 8px;
+      }
+
+      p {
+        color: #a8a8a2;
+        margin-bottom: 14px;
+      }
+      p strong {
+        color: var(--text);
+        font-weight: 400;
+      }
+      p:last-child {
+        margin-bottom: 0;
+      }
+
+      .lead {
+        font-size: 19px;
+        color: #c0c0ba;
+        font-style: italic;
+        margin-bottom: 28px;
+        line-height: 1.6;
+      }
+
+      /* ── CALLOUT ── */
+      .callout {
+        border-left: 2px solid var(--accent);
+        background: rgba(200, 245, 66, 0.04);
+        border-radius: 0 6px 6px 0;
+        padding: 16px 20px;
+        margin: 20px 0;
+      }
+
+      .callout-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      .callout p {
+        font-size: 14px;
+        color: #a0a09a;
+        margin: 0;
+      }
+
+      /* ── CODE BLOCK ── */
+      .code-block {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+
+      .code-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .code-title {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+      }
+
+      .code-lang {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--dim);
+      }
+
+      pre {
+        padding: 22px;
+        overflow-x: auto;
+        font-family: var(--fn-mono);
+        font-size: 13px;
+        line-height: 1.85;
+        color: #c0c0b8;
+      }
+
+      .k {
+        color: var(--accent);
+      }
+      .s {
+        color: #9aba3a;
+      }
+      .c {
+        color: #383830;
+      }
+      .f {
+        color: #7ecfcf;
+      }
+      .n {
+        color: #e0a86c;
+      }
+
+      /* ── LIVE DEMO ── */
+      .demo-box {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+
+      .demo-box-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      .demo-box-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .demo-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .demo-body {
+        padding: 32px;
+        background: #0d0d0d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100px;
+      }
+
+      /* ── WHAT'S HAPPENING BOX ── */
+      .explain {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin: 20px 0;
+      }
+
+      .explain-title {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      .explain ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .explain ul li {
+        font-size: 14px;
+        color: var(--muted);
+        padding-left: 20px;
+        position: relative;
+        line-height: 1.5;
+      }
+
+      .explain ul li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        font-family: var(--fn-mono);
+        font-size: 12px;
+      }
+
+      .explain ul li strong {
+        color: var(--text);
+        font-weight: 400;
+      }
+
+      /* ── NEXT STEP BANNER ── */
+      .next-banner {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px 28px;
+        margin-top: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        background: var(--surface);
+      }
+
+      .next-banner-text {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .next-banner-text strong {
+        display: block;
+        color: var(--text);
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .btn {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #000;
+        font-weight: 500;
+      }
+
+      .btn-primary:hover {
+        background: #d9ff55;
+      }
+
+      /* ── INLINE CODE ── */
+      code {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        background: #1a1a1a;
+        border: 1px solid var(--border);
+        padding: 1px 6px;
+        border-radius: 3px;
+        color: var(--accent);
+      }
+
+      /* ── ANIMATIONS ── */
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 768px) {
+        .wrap {
+          grid-template-columns: 1fr;
+        }
+        aside {
+          display: none;
+        }
+        main {
+          padding: 32px 24px 80px;
+        }
+      }
+
+      /* ── WEB COMPONENT STYLES (for live demos) ── */
+      .demo-step-1 {
+        font-family: var(--fn-mono);
+        font-size: 14px;
+        color: var(--accent);
+        padding: 16px 24px;
+        border: 1px solid var(--dim);
+        border-radius: 6px;
+      }
+
+      .demo-step-2 {
+        font-family: var(--fn-body);
+        color: var(--text);
+        text-align: center;
+      }
+
+      .demo-step-2 .greeting {
+        font-size: 24px;
+        font-weight: 300;
+        font-style: italic;
+        color: var(--accent);
+        margin-bottom: 4px;
+      }
+
+      .demo-step-2 .sub {
+        font-size: 13px;
+        color: var(--muted);
+        font-family: var(--fn-mono);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <!-- ═══ SIDEBAR ═══ -->
+      <aside>
+        <a href="../index.html" class="sidebar-logo">flow-arch/</a>
+        <a href="index.html" class="sidebar-back">← back to starter</a>
+
+        <p class="sidebar-label">Steps</p>
+        <ul class="sidebar-nav">
+          <li><a href="#intro">What is a Web Component?</a></li>
+          <li><a href="#step1">Step 1 — Extend HTMLElement</a></li>
+          <li><a href="#step2">Step 2 — connectedCallback</a></li>
+          <li><a href="#step3">Step 3 — attachShadow</a></li>
+          <li><a href="#step4">Step 4 — Attributes &amp; Props</a></li>
+          <li><a href="#step5">Step 5 — Lifecycle Methods</a></li>
+          <li><a href="#step6">Step 6 — Events</a></li>
+          <li><a href="#full">Full Example</a></li>
+        </ul>
+      </aside>
+
+      <!-- ═══ MAIN ═══ -->
+      <main>
+        <!-- BREADCRUMB -->
+        <div class="breadcrumb">
+          <a href="../index.html">flow-vanilla</a>
+          <span>/</span>
+          <a href="index.html">starter</a>
+          <span>/</span>
+          <span>web components</span>
+        </div>
+
+        <!-- INTRO -->
+        <section id="intro" class="step">
+          <div class="step-tag">
+            <!-- <span class="step-num">TUTORIAL</span> -->
+            <span class="step-label">
+              <a href="./index.html#webcomponent">← Web Components </a> · From
+              Zero</span
+            >
+          </div>
+
+          <h1>Write your first<br /><em>Web Component.</em></h1>
+
+          <p class="lead">
+            A Web Component is a custom HTML element you define yourself. No
+            library. No framework. Just the browser.
+          </p>
+
+          <p>
+            This tutorial builds a Web Component
+            <strong>one step at a time</strong>. Each step adds exactly one new
+            concept. By the end you will have written a fully working component
+            from scratch.
+          </p>
+
+          <div class="callout">
+            <div class="callout-label">Before you start</div>
+            <p>
+              You only need a text editor and a browser. No npm. No install.
+              Create an <code>index.html</code> and a
+              <code>my-component.js</code> and you are ready.
+            </p>
+          </div>
+        </section>
+
+        <!-- STEP 1 -->
+        <section id="step1" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 01</span>
+            <span class="step-label">The minimum possible component</span>
+          </div>
+          <h2>Extend HTMLElement</h2>
+
+          <p>
+            Every Web Component starts the same way: a JavaScript class that
+            <strong>extends HTMLElement</strong>, then registered with
+            <code>customElements.define()</code>.
+          </p>
+
+          <p>
+            The tag name <strong>must contain a hyphen</strong>. This is how the
+            browser tells the difference between your custom elements and native
+            HTML elements.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">my-component.js</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="c">// Step 1: Create a class that extends HTMLElement</span>
+<span class="k">class</span> <span class="f">MyComponent</span> <span class="k">extends</span> HTMLElement {
+  <span class="c">// Empty for now — we will fill this in</span>
+}
+
+<span class="c">// Step 2: Register the tag name</span>
+<span class="c">// The name MUST contain a hyphen</span>
+customElements.<span class="f">define</span>(<span class="s">"my-component"</span>, MyComponent)</pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">index.html</span>
+              <span class="code-lang">HTML</span>
+            </div>
+            <pre><span class="k">&lt;!doctype html&gt;</span>
+&lt;html&gt;
+  &lt;body&gt;
+
+    <span class="c">&lt;!-- Use it like any normal HTML tag --&gt;</span>
+    &lt;<span class="f">my-component</span>&gt;&lt;/<span class="f">my-component</span>&gt;
+
+    &lt;script type=<span class="s">"module"</span> src=<span class="s">"./my-component.js"</span>&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">What just happened</div>
+            <ul>
+              <li>
+                <strong>extends HTMLElement</strong> — your class inherits all
+                browser element behaviour
+              </li>
+              <li>
+                <strong>customElements.define()</strong> — tells the browser
+                "when you see this tag, use this class"
+              </li>
+              <li>
+                <strong>type="module"</strong> — required so the script runs
+                after the DOM is ready
+              </li>
+            </ul>
+          </div>
+
+          <p>The component exists but renders nothing yet. That comes next.</p>
+        </section>
+
+        <!-- STEP 2 -->
+        <section id="step2" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 02</span>
+            <span class="step-label">Render something</span>
+          </div>
+          <h2>connectedCallback</h2>
+
+          <p>
+            <code>connectedCallback</code> is a
+            <strong>lifecycle method</strong> — a function the browser calls
+            automatically when your element is inserted into the page.
+          </p>
+
+          <p>This is where you render your HTML for the first time.</p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">my-component.js</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="k">class</span> <span class="f">MyComponent</span> <span class="k">extends</span> HTMLElement {
+
+  <span class="c">// The browser calls this automatically</span>
+  <span class="c">// when the element is added to the page</span>
+  <span class="f">connectedCallback</span>() {
+    <span class="k">this</span>.innerHTML = <span class="s">`
+      &lt;p&gt;Hello, I am a Web Component!&lt;/p&gt;
+    `</span>
+  }
+}
+
+customElements.<span class="f">define</span>(<span class="s">"my-component"</span>, MyComponent)</pre>
+          </div>
+
+          <!-- LIVE DEMO -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label">Live Result</span>
+              <span class="demo-dot"></span>
+            </div>
+            <div class="demo-body">
+              <step-two-demo></step-two-demo>
+            </div>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">What just happened</div>
+            <ul>
+              <li>
+                <strong>connectedCallback()</strong> — runs once, when the
+                element enters the DOM
+              </li>
+              <li>
+                <strong>this</strong> — refers to the element itself, just like
+                <code>document.querySelector("my-component")</code>
+              </li>
+              <li>
+                <strong>this.innerHTML</strong> — sets the inner HTML of your
+                element
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- STEP 3 -->
+        <section id="step3" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 03</span>
+            <span class="step-label">Isolate styles</span>
+          </div>
+          <h2>attachShadow</h2>
+
+          <p>
+            Right now your component's styles and the page's styles can
+            interfere with each other. <code>attachShadow()</code> creates a
+            private DOM tree inside your element — completely isolated from the
+            outside world.
+          </p>
+
+          <p>
+            This is called the <strong>Shadow DOM</strong>. Styles inside it
+            cannot leak out. Styles outside cannot leak in.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">my-component.js</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="k">class</span> <span class="f">MyComponent</span> <span class="k">extends</span> HTMLElement {
+
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()  <span class="c">// always call super() first</span>
+
+    <span class="c">// Create the Shadow DOM</span>
+    <span class="c">// mode: "open" means JS outside can still query it</span>
+    <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+  }
+
+  <span class="f">connectedCallback</span>() {
+    <span class="c">// Now write to shadowRoot instead of this</span>
+    <span class="k">this</span>.shadowRoot.innerHTML = <span class="s">`
+      &lt;style&gt;
+        p {
+          color: #c8f542;
+          font-family: monospace;
+          font-size: 18px;
+          padding: 16px;
+          border: 1px solid #c8f542;
+          border-radius: 6px;
+        }
+      &lt;/style&gt;
+
+      &lt;p&gt;I have my own private styles!&lt;/p&gt;
+    `</span>
+  }
+}
+
+customElements.<span class="f">define</span>(<span class="s">"my-component"</span>, MyComponent)</pre>
+          </div>
+
+          <!-- LIVE DEMO -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label">Live Result</span>
+              <span class="demo-dot"></span>
+            </div>
+            <div class="demo-body">
+              <step-three-demo></step-three-demo>
+            </div>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">What just happened</div>
+            <ul>
+              <li>
+                <strong>constructor()</strong> — runs when the element is
+                created, before it enters the DOM
+              </li>
+              <li>
+                <strong>super()</strong> — required first line in every Web
+                Component constructor
+              </li>
+              <li>
+                <strong>attachShadow()</strong> — creates the private DOM,
+                accessible via <code>this.shadowRoot</code>
+              </li>
+              <li>
+                <strong>The CSS inside only affects this component</strong> — it
+                will never leak to the page
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- STEP 4 -->
+        <section id="step4" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 04</span>
+            <span class="step-label">Accept data from outside</span>
+          </div>
+          <h2>Attributes &amp; Props</h2>
+
+          <p>
+            A component that always shows the same thing is not very useful. Use
+            <strong>HTML attributes</strong> to pass data in from outside — just
+            like <code>&lt;input type="text"&gt;</code> or
+            <code>&lt;img src="..."&gt;</code>.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">my-component.js</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="k">class</span> <span class="f">MyComponent</span> <span class="k">extends</span> HTMLElement {
+
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()
+    <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+  }
+
+  <span class="f">connectedCallback</span>() {
+    <span class="c">// Read the attribute from HTML</span>
+    <span class="c">// &lt;my-component name="Alice"&gt;&lt;/my-component&gt;</span>
+    <span class="k">const</span> name = <span class="k">this</span>.<span class="f">getAttribute</span>(<span class="s">"name"</span>) || <span class="s">"World"</span>
+
+    <span class="k">this</span>.shadowRoot.innerHTML = <span class="s">`
+      &lt;style&gt;
+        p { color: #c8f542; font-family: monospace; font-size: 18px; }
+      &lt;/style&gt;
+      &lt;p&gt;Hello, ${name}!&lt;/p&gt;
+    `</span>
+  }
+}
+
+customElements.<span class="f">define</span>(<span class="s">"my-component"</span>, MyComponent)</pre>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">index.html — using the attribute</span>
+              <span class="code-lang">HTML</span>
+            </div>
+            <pre><span class="c">&lt;!-- Each instance gets different data --&gt;</span>
+&lt;<span class="f">my-component</span> name=<span class="s">"Alice"</span>&gt;&lt;/<span class="f">my-component</span>&gt;
+&lt;<span class="f">my-component</span> name=<span class="s">"Bob"</span>&gt;&lt;/<span class="f">my-component</span>&gt;
+&lt;<span class="f">my-component</span>&gt;&lt;/<span class="f">my-component</span>&gt; <span class="c">&lt;!-- falls back to "World" --&gt;</span></pre>
+          </div>
+
+          <!-- LIVE DEMO -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label">Live Result</span>
+              <span class="demo-dot"></span>
+            </div>
+            <div class="demo-body" style="flex-direction: column; gap: 8px">
+              <step-four-demo name="Alice"></step-four-demo>
+              <step-four-demo name="Bob"></step-four-demo>
+              <step-four-demo></step-four-demo>
+            </div>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">What just happened</div>
+            <ul>
+              <li>
+                <strong>getAttribute("name")</strong> — reads the HTML attribute
+                value
+              </li>
+              <li>
+                <strong>|| "World"</strong> — provides a fallback if the
+                attribute is missing
+              </li>
+              <li>
+                Each instance of the component is
+                <strong>independent</strong> with its own data
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- STEP 5 -->
+        <section id="step5" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 05</span>
+            <span class="step-label">React to attribute changes</span>
+          </div>
+          <h2>Lifecycle Methods</h2>
+
+          <p>
+            Web Components have four lifecycle methods the browser calls
+            automatically. Together they control the full life of your element.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">all four lifecycle methods</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="k">class</span> <span class="f">MyComponent</span> <span class="k">extends</span> HTMLElement {
+
+  <span class="c">// 1. Called when the element is CREATED</span>
+  <span class="c">//    (before it's added to the page)</span>
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()
+    <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+    console.<span class="f">log</span>(<span class="s">"1. constructor — element created"</span>)
+  }
+
+  <span class="c">// 2. Called when the element ENTERS the DOM</span>
+  <span class="f">connectedCallback</span>() {
+    <span class="k">this</span>.<span class="f">render</span>()
+    console.<span class="f">log</span>(<span class="s">"2. connectedCallback — now on the page"</span>)
+  }
+
+  <span class="c">// 3. Called when the element LEAVES the DOM</span>
+  <span class="c">//    Use this to clean up timers, event listeners, etc.</span>
+  <span class="f">disconnectedCallback</span>() {
+    console.<span class="f">log</span>(<span class="s">"3. disconnectedCallback — removed from page"</span>)
+  }
+
+  <span class="c">// 4. Called when an observed attribute CHANGES</span>
+  <span class="c">//    Must declare which attributes to watch</span>
+  <span class="k">static</span> <span class="f">get</span> observedAttributes() {
+    <span class="k">return</span> [<span class="s">"name"</span>]  <span class="c">// watch these attributes</span>
+  }
+
+  <span class="f">attributeChangedCallback</span>(attr, oldValue, newValue) {
+    console.<span class="f">log</span>(<span class="s">`4. attribute "${attr}" changed: ${oldValue} → ${newValue}`</span>)
+    <span class="k">this</span>.<span class="f">render</span>()  <span class="c">// re-render when attribute changes</span>
+  }
+
+  <span class="f">render</span>() {
+    <span class="k">const</span> name = <span class="k">this</span>.<span class="f">getAttribute</span>(<span class="s">"name"</span>) || <span class="s">"World"</span>
+    <span class="k">this</span>.shadowRoot.innerHTML = <span class="s">`&lt;p&gt;Hello, ${name}!&lt;/p&gt;`</span>
+  }
+}
+
+customElements.<span class="f">define</span>(<span class="s">"my-component"</span>, MyComponent)</pre>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">The four lifecycle methods</div>
+            <ul>
+              <li>
+                <strong>constructor()</strong> — element is created, set up your
+                Shadow DOM here
+              </li>
+              <li>
+                <strong>connectedCallback()</strong> — element enters the DOM,
+                render and start timers here
+              </li>
+              <li>
+                <strong>disconnectedCallback()</strong> — element leaves the
+                DOM, clean up timers here
+              </li>
+              <li>
+                <strong>attributeChangedCallback()</strong> — an observed
+                attribute changed, re-render here
+              </li>
+            </ul>
+          </div>
+
+          <div class="callout">
+            <div class="callout-label">Important</div>
+            <p>
+              <code>disconnectedCallback</code> is critical if you use
+              <code>setInterval</code> or <code>addEventListener</code> on
+              <code>window</code>. Always clean up, or you will create memory
+              leaks.
+            </p>
+          </div>
+        </section>
+
+        <!-- STEP 6 -->
+        <section id="step6" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 06</span>
+            <span class="step-label">Respond to user interaction</span>
+          </div>
+          <h2>Events</h2>
+
+          <p>
+            Use <strong>event delegation</strong> — attach one listener to the
+            Shadow Root instead of one listener per button. Use
+            <code>data-action</code> attributes to identify what each element
+            does.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">event delegation pattern</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="k">class</span> <span class="f">MyComponent</span> <span class="k">extends</span> HTMLElement {
+
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()
+    <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+    <span class="k">this</span>.count = <span class="n">0</span>
+  }
+
+  <span class="f">connectedCallback</span>() {
+    <span class="k">this</span>.<span class="f">render</span>()
+
+    <span class="c">// One listener on the shadowRoot</span>
+    <span class="c">// handles ALL clicks inside the component</span>
+    <span class="k">this</span>.shadowRoot.<span class="f">addEventListener</span>(<span class="s">"click"</span>, (e) => {
+      <span class="k">const</span> action = e.target.dataset.action
+
+      <span class="k">if</span> (action === <span class="s">"increment"</span>) {
+        <span class="k">this</span>.count += <span class="n">1</span>
+        <span class="k">this</span>.<span class="f">render</span>()
+      }
+
+      <span class="k">if</span> (action === <span class="s">"decrement"</span>) {
+        <span class="k">this</span>.count -= <span class="n">1</span>
+        <span class="k">this</span>.<span class="f">render</span>()
+      }
+    })
+  }
+
+  <span class="f">render</span>() {
+    <span class="k">this</span>.shadowRoot.innerHTML = <span class="s">`
+      &lt;style&gt;
+        :host { display: flex; align-items: center; gap: 16px; }
+        button {
+          background: #1e1e1e; color: #c8f542;
+          border: 1px solid #c8f542; border-radius: 4px;
+          padding: 6px 14px; font-size: 18px; cursor: pointer;
+        }
+        button:hover { background: #c8f542; color: #000; }
+        span { font-family: monospace; font-size: 24px; color: #e2e2dc; }
+      &lt;/style&gt;
+
+      &lt;button data-action="decrement"&gt;−&lt;/button&gt;
+      &lt;span&gt;${this.count}&lt;/span&gt;
+      &lt;button data-action="increment"&gt;+&lt;/button&gt;
+    `</span>
+  }
+}
+
+customElements.<span class="f">define</span>(<span class="s">"my-component"</span>, MyComponent)</pre>
+          </div>
+
+          <!-- LIVE DEMO -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label">Live Result — try it</span>
+              <span class="demo-dot"></span>
+            </div>
+            <div class="demo-body">
+              <step-six-demo></step-six-demo>
+            </div>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">What just happened</div>
+            <ul>
+              <li>
+                <strong>data-action</strong> — a custom attribute on the button
+                that names what it does
+              </li>
+              <li>
+                <strong>event delegation</strong> — one listener catches all
+                clicks, then checks <code>data-action</code>
+              </li>
+              <li>
+                <strong>this.count</strong> — component state stored directly on
+                the instance
+              </li>
+              <li>
+                Note: this pattern works, but is
+                <strong>not yet the Flow-Arch way</strong> — next we add a
+                Reducer
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- FULL EXAMPLE -->
+        <section id="full" class="step">
+          <div class="step-tag">
+            <span class="step-num">COMPLETE</span>
+            <span class="step-label">Everything together</span>
+          </div>
+          <h2>Full Example</h2>
+
+          <p>
+            Here is a complete, clean Web Component using everything from this
+            tutorial. This is the pattern Flow-Arch builds on.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title"
+                >flow-counter.js — complete web component</span
+              >
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="c">// ─── STATE ────────────────────────────────────────────</span>
+<span class="k">const</span> <span class="f">createInitialState</span> = () => ({ count: <span class="n">0</span> })
+
+<span class="c">// ─── REDUCER (pure function) ──────────────────────────</span>
+<span class="k">const</span> <span class="f">reducer</span> = (state, action) => {
+  <span class="k">switch</span> (action.type) {
+    <span class="k">case</span> <span class="s">"INCREMENT"</span>: <span class="k">return</span> { ...state, count: state.count + <span class="n">1</span> }
+    <span class="k">case</span> <span class="s">"DECREMENT"</span>: <span class="k">return</span> { ...state, count: state.count - <span class="n">1</span> }
+    <span class="k">case</span> <span class="s">"RESET"</span>:     <span class="k">return</span> { ...state, count: <span class="n">0</span> }
+    <span class="k">default</span>:         <span class="k">return</span> state
+  }
+}
+
+<span class="c">// ─── VIEW (pure function) ─────────────────────────────</span>
+<span class="k">const</span> <span class="f">view</span> = (state) => <span class="s">`
+  &lt;style&gt;
+    :host {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      font-family: monospace;
+    }
+    .count { font-size: 48px; color: #c8f542; }
+    .buttons { display: flex; gap: 8px; }
+    button {
+      padding: 8px 18px; font-size: 16px;
+      background: #1e1e1e; color: #c8f542;
+      border: 1px solid #333; border-radius: 4px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    button:hover { background: #c8f542; color: #000; }
+    .reset { font-size: 12px; color: #5a5a54; margin-top: 4px; }
+  &lt;/style&gt;
+
+  &lt;div class="count"&gt;${state.count}&lt;/div&gt;
+
+  &lt;div class="buttons"&gt;
+    &lt;button data-action="DECREMENT"&gt;−&lt;/button&gt;
+    &lt;button data-action="INCREMENT"&gt;+&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;button class="reset" data-action="RESET"&gt;reset&lt;/button&gt;
+`</span>
+
+<span class="c">// ─── WEB COMPONENT ────────────────────────────────────</span>
+<span class="k">class</span> <span class="f">FlowCounter</span> <span class="k">extends</span> HTMLElement {
+
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()
+    <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+    <span class="k">this</span>.state = <span class="f">createInitialState</span>()
+
+    <span class="k">this</span>.dispatch = (action) => {
+      <span class="k">this</span>.state = <span class="f">reducer</span>(<span class="k">this</span>.state, action)
+      <span class="k">this</span>.<span class="f">render</span>()
+    }
+  }
+
+  <span class="f">connectedCallback</span>() {
+    <span class="k">this</span>.<span class="f">render</span>()
+    <span class="k">this</span>.shadowRoot.<span class="f">addEventListener</span>(<span class="s">"click"</span>, (e) => {
+      <span class="k">const</span> type = e.target.dataset.action
+      <span class="k">if</span> (type) <span class="k">this</span>.<span class="f">dispatch</span>({ type })
+    })
+  }
+
+  <span class="f">render</span>() {
+    <span class="k">this</span>.shadowRoot.innerHTML = <span class="f">view</span>(<span class="k">this</span>.state)
+  }
+}
+
+customElements.<span class="f">define</span>(<span class="s">"flow-counter"</span>, FlowCounter)</pre>
+          </div>
+
+          <!-- LIVE DEMO -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label">Live Result — try it</span>
+              <span class="demo-dot"></span>
+            </div>
+            <div class="demo-body">
+              <full-counter-demo></full-counter-demo>
+            </div>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">What changed from Step 06</div>
+            <ul>
+              <li>
+                <strong>State is now a plain object</strong> — not a raw number
+                on <code>this</code>
+              </li>
+              <li>
+                <strong>Reducer handles all state changes</strong> — no logic
+                inside the component class
+              </li>
+              <li>
+                <strong>View is a separate pure function</strong> — completely
+                decoupled from the component
+              </li>
+              <li>
+                <strong>dispatch()</strong> — the single entry point for all
+                state changes
+              </li>
+            </ul>
+          </div>
+
+          <!-- NEXT -->
+          <div class="next-banner">
+            <div class="next-banner-text">
+              <strong>You finished the Web Components tutorial.</strong>
+              Next: learn about Shadow DOM in depth.
+            </div>
+            <a href="index.html#shadowdom" class="btn btn-primary"
+              >Continue →</a
+            >
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+     LIVE DEMO WEB COMPONENTS
+═══════════════════════════════════════ -->
+    <script type="module">
+      // ── Step 2 demo ──
+      class StepTwoDemo extends HTMLElement {
+        connectedCallback() {
+          this.innerHTML = `<p style="font-family:monospace;color:#c8f542;font-size:15px;padding:12px 20px;border:1px solid #c8f542;border-radius:6px">Hello, I am a Web Component!</p>`;
+        }
+      }
+      customElements.define("step-two-demo", StepTwoDemo);
+
+      // ── Step 3 demo ──
+      class StepThreeDemo extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+        }
+        connectedCallback() {
+          this.shadowRoot.innerHTML = `
+        <style>
+          p {
+            color: #c8f542;
+            font-family: monospace;
+            font-size: 15px;
+            padding: 12px 20px;
+            border: 1px solid #c8f542;
+            border-radius: 6px;
+          }
+        </style>
+        <p>I have my own private styles!</p>
+      `;
+        }
+      }
+      customElements.define("step-three-demo", StepThreeDemo);
+
+      // ── Step 4 demo ──
+      class StepFourDemo extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+        }
+        connectedCallback() {
+          const name = this.getAttribute("name") || "World";
+          this.shadowRoot.innerHTML = `
+        <style>
+          p { color: #c8f542; font-family: monospace; font-size: 15px; margin: 2px 0; }
+        </style>
+        <p>Hello, ${name}!</p>
+      `;
+        }
+      }
+      customElements.define("step-four-demo", StepFourDemo);
+
+      // ── Step 6 demo ──
+      class StepSixDemo extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+          this.count = 0;
+        }
+        connectedCallback() {
+          this.render();
+          this.shadowRoot.addEventListener("click", (e) => {
+            const action = e.target.dataset.action;
+            if (action === "increment") {
+              this.count += 1;
+              this.render();
+            }
+            if (action === "decrement") {
+              this.count -= 1;
+              this.render();
+            }
+          });
+        }
+        render() {
+          this.shadowRoot.innerHTML = `
+        <style>
+          :host { display: flex; align-items: center; gap: 16px; }
+          button {
+            background: #1e1e1e; color: #c8f542;
+            border: 1px solid #c8f542; border-radius: 4px;
+            padding: 6px 14px; font-size: 18px; cursor: pointer; transition: all 0.15s;
+          }
+          button:hover { background: #c8f542; color: #000; }
+          span { font-family: monospace; font-size: 28px; color: #e2e2dc; min-width: 40px; text-align: center; }
+        </style>
+        <button data-action="decrement">−</button>
+        <span>${this.count}</span>
+        <button data-action="increment">+</button>
+      `;
+        }
+      }
+      customElements.define("step-six-demo", StepSixDemo);
+
+      // ── Full Flow-Arch counter demo ──
+      const createInitialState = () => ({ count: 0 });
+
+      const reducer = (state, action) => {
+        switch (action.type) {
+          case "INCREMENT":
+            return { ...state, count: state.count + 1 };
+          case "DECREMENT":
+            return { ...state, count: state.count - 1 };
+          case "RESET":
+            return { ...state, count: 0 };
+          default:
+            return state;
+        }
+      };
+
+      const view = (state) => `
+    <style>
+      :host { display: inline-flex; flex-direction: column; align-items: center; gap: 12px; font-family: monospace; }
+      .count { font-size: 48px; color: #c8f542; }
+      .buttons { display: flex; gap: 8px; }
+      button {
+        padding: 8px 18px; font-size: 16px;
+        background: #1e1e1e; color: #c8f542;
+        border: 1px solid #333; border-radius: 4px;
+        cursor: pointer; transition: all 0.15s;
+      }
+      button:hover { background: #c8f542; color: #000; }
+      .reset { font-size: 12px; color: #5a5a54; margin-top: 4px; cursor: pointer; background: transparent; border: none; }
+      .reset:hover { color: #c8f542; }
+    </style>
+    <div class="count">${state.count}</div>
+    <div class="buttons">
+      <button data-action="DECREMENT">−</button>
+      <button data-action="INCREMENT">+</button>
+    </div>
+    <button class="reset" data-action="RESET">reset</button>
+  `;
+
+      class FullCounterDemo extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+          this.state = createInitialState();
+          this.dispatch = (action) => {
+            this.state = reducer(this.state, action);
+            this.render();
+          };
+        }
+        connectedCallback() {
+          this.render();
+          this.shadowRoot.addEventListener("click", (e) => {
+            const type = e.target.dataset.action;
+            if (type) this.dispatch({ type });
+          });
+        }
+        render() {
+          this.shadowRoot.innerHTML = view(this.state);
+        }
+      }
+      customElements.define("full-counter-demo", FullCounterDemo);
+
+      // Sidebar active highlight
+      const sections = document.querySelectorAll("section[id]");
+      const links = document.querySelectorAll(".sidebar-nav a");
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              links.forEach((l) => l.classList.remove("active"));
+              const a = document.querySelector(
+                `.sidebar-nav a[href="#${e.target.id}"]`,
+              );
+              if (a) a.classList.add("active");
+            }
+          });
+        },
+        { threshold: 0.4 },
+      );
+      sections.forEach((s) => obs.observe(s));
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1511 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flow-Arch · Backend — Pure Functional Data</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ============================================================
+       DESIGN TOKENS
+       Backend identity: same dark base, but accent is BLUE/CYAN
+       to visually separate from vanilla-flow (green)
+    ============================================================ */
+      :root {
+        --bg: #080810;
+        --surface: #0d0d1a;
+        --surface2: #111120;
+        --border: #1a1a2e;
+        --accent: #7eb8f7;
+        --accent-dim: #3a6fa8;
+        --accent-glow: rgba(126, 184, 247, 0.08);
+        --warm: #f7c77e;
+        --text: #dddde8;
+        --muted: #4f4e4e;
+        --code-bg: #0a0a18;
+
+        --fn-mono: "DM Mono", monospace;
+        --fn-disp: "Syne", sans-serif;
+        --fn-body: "Fraunces", serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--fn-body);
+        font-size: 18px;
+        line-height: 1.75;
+        overflow-x: hidden;
+      }
+
+      ::selection {
+        background: var(--accent);
+        color: #000;
+      }
+
+      /* subtle grid background */
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(126, 184, 247, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(126, 184, 247, 0.03) 1px, transparent 1px);
+        background-size: 48px 48px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ── NAV ── */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: rgba(8, 8, 16, 0.9);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .nav-inner {
+        max-width: 860px;
+        margin: 0 auto;
+        /* padding: 0 32px; */
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .nav-left {
+        display: flex;
+        align-items: center;
+        /* gap: 24px; */
+      }
+
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+      }
+
+      .nav-brand-fe {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: #c8f542;
+        letter-spacing: 0.1em;
+        /* border: 1px solid rgba(200, 245, 66, 0.3); */
+        padding: 2px 8px;
+        /* border-radius: 3px; */
+      }
+      .nav-brand-fe:hover {
+        /* color: var(--accent-dim); */
+        /* border-color: var(--accent); */
+        text-decoration: underline;
+      }
+
+      .nav-brand-sep {
+        color: var(--muted);
+        font-family: var(--fn-mono);
+        font-size: 14px;
+      }
+
+      .nav-brand-be {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: var(--accent);
+        letter-spacing: 0.1em;
+        /* border: 1px solid var(--accent-dim); */
+        /* padding: 2px 8px; */
+        border-radius: 3px;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 24px;
+        list-style: none;
+        align-items: center;
+      }
+
+      .nav-links a {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        color: var(--muted);
+        text-decoration: none;
+        letter-spacing: 0.06em;
+        transition: color 0.2s;
+      }
+
+      .nav-links a:hover {
+        color: var(--accent);
+      }
+
+      /* ── SECTIONS WRAPPER ── */
+      .container {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 0 32px;
+        position: relative;
+        z-index: 1;
+      }
+
+      section {
+        padding: 96px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      /* ── HERO ── */
+      #hero {
+        padding-top: 180px;
+        padding-bottom: 120px;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-eyebrow {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 24px;
+        opacity: 0;
+        animation: fadeUp 0.7s ease 0.1s forwards;
+      }
+
+      h1 {
+        font-family: var(--fn-disp);
+        font-size: clamp(44px, 7vw, 80px);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        margin-bottom: 28px;
+        opacity: 0;
+        animation: fadeUp 0.7s ease 0.2s forwards;
+      }
+
+      h1 .line-italic {
+        display: block;
+        font-family: var(--fn-body);
+        font-style: italic;
+        font-weight: 300;
+        color: var(--accent);
+        font-size: 0.85em;
+      }
+
+      h1 .line-warm {
+        color: var(--warm);
+      }
+
+      .hero-desc {
+        font-size: 19px;
+        color: var(--muted);
+        max-width: 580px;
+        line-height: 1.65;
+        margin-bottom: 48px;
+        opacity: 0;
+        animation: fadeUp 0.7s ease 0.3s forwards;
+      }
+
+      .hero-desc strong {
+        color: var(--text);
+        font-weight: 400;
+      }
+
+      .hero-cta {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        opacity: 0;
+        animation: fadeUp 0.7s ease 0.4s forwards;
+      }
+
+      .btn {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        padding: 11px 22px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: inline-block;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #000;
+        font-weight: 500;
+      }
+      .btn-primary:hover {
+        background: #a0ccff;
+        transform: translateY(-1px);
+      }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+
+      .btn-ghost:hover {
+        color: var(--accent);
+        border-color: var(--accent-dim);
+      }
+
+      .btn-ghost-vanilla {
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid rgba(154, 186, 90, 0.3);
+      }
+
+      .btn-ghost-vanilla:hover {
+        border: 1px solid #9aba5a;
+        color: #9aba5a;
+      }
+
+      /* floating equation */
+      .hero-equation {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        font-family: var(--fn-mono);
+        font-size: 13px;
+        /* color: var(--border); */
+        /* color: #676767; */
+        line-height: 2.2;
+        text-align: right;
+        padding-right: 32px;
+        opacity: 0;
+        animation: fadeUp 0.7s ease 0.6s forwards;
+        pointer-events: none;
+      }
+
+      .hero-equation .hi {
+        color: var(--accent-dim);
+      }
+
+      /* ── SECTION LABELS ── */
+      .section-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+
+      h2 {
+        font-family: var(--fn-disp);
+        font-size: clamp(26px, 3.5vw, 38px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 20px;
+        line-height: 1.2;
+      }
+
+      h3 {
+        font-family: var(--fn-disp);
+        font-size: 17px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      p {
+        color: #9090a0;
+        margin-bottom: 14px;
+      }
+      p strong {
+        color: var(--text);
+        font-weight: 400;
+      }
+      p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* ── PHILOSOPHY STRIP ── */
+      .philosophy-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 48px;
+      }
+
+      .phil-item {
+        background: var(--surface);
+        padding: 28px;
+        transition: background 0.2s;
+      }
+
+      .phil-item:hover {
+        background: var(--surface2);
+      }
+
+      .phil-num {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        margin-bottom: 10px;
+      }
+
+      .phil-title {
+        font-family: var(--fn-disp);
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 8px;
+      }
+
+      .phil-desc {
+        font-size: 14px;
+        /* color: var(--muted); */
+        color: #b0b0aa;
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      /* ── CONNECTION TO FRONTEND ── */
+      .connection-grid {
+        display: grid;
+        grid-template-columns: 1fr 60px 1fr;
+        align-items: center;
+        gap: 0;
+        margin: 40px 0;
+      }
+
+      .conn-box {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+        background: var(--surface);
+      }
+
+      .conn-box.fe {
+        border-color: rgba(200, 245, 66, 0.2);
+      }
+      .conn-box.be {
+        border-color: var(--accent-dim);
+      }
+
+      .conn-tag {
+        font-family: var(--fn-mono);
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+
+      .conn-tag.fe {
+        color: #c8f542;
+      }
+      .conn-tag.be {
+        color: var(--accent);
+      }
+
+      .conn-name {
+        font-family: var(--fn-disp);
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .conn-desc {
+        font-size: 13px;
+        /* color: var(--muted); */
+        font-family: var(--fn-mono);
+        line-height: 1.5;
+        margin: 0;
+      }
+
+      .conn-arrow {
+        text-align: center;
+        font-family: var(--fn-mono);
+        font-size: 20px;
+        color: var(--accent-dim);
+      }
+
+      .conn-shared {
+        margin-top: 20px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px 24px;
+        background: var(--surface2);
+      }
+
+      .conn-shared-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+
+      .conn-shared-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .tag {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 100px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+
+      .tag.lit {
+        border-color: var(--accent-dim);
+        color: var(--accent);
+      }
+
+      /* ── LANGUAGE CARDS ── */
+      .lang-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 40px;
+      }
+
+      .lang-card {
+        background: var(--surface);
+        padding: 28px;
+        transition: background 0.15s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .lang-card:hover {
+        background: var(--surface2);
+      }
+
+      .lang-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--card-accent, var(--accent));
+        opacity: 0.6;
+      }
+
+      .lang-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+
+      .lang-name {
+        font-family: var(--fn-disp);
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.02em;
+      }
+
+      .lang-phase {
+        font-family: var(--fn-mono);
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 100px;
+        white-space: nowrap;
+      }
+
+      .phase-now {
+        background: rgba(126, 184, 247, 0.1);
+        color: var(--accent);
+        border: 1px solid var(--accent-dim);
+      }
+      .phase-next {
+        background: rgba(247, 199, 126, 0.1);
+        color: var(--warm);
+        border: 1px solid rgba(247, 199, 126, 0.4);
+      }
+      .phase-future {
+        background: rgba(80, 80, 100, 0.2);
+        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+
+      .lang-tagline {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: var(--warm);
+        letter-spacing: 0.05em;
+        margin-bottom: 12px;
+      }
+
+      .lang-desc {
+        font-size: 14px;
+        /* color: var(--muted); */
+        line-height: 1.6;
+        margin-bottom: 16px;
+      }
+
+      .lang-traits {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .trait {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 3px;
+        background: rgba(126, 184, 247, 0.06);
+        color: var(--accent);
+        border: 1px solid rgba(126, 184, 247, 0.15);
+      }
+
+      /* ── CODE BLOCK ── */
+      .code-block {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 24px 0;
+      }
+
+      .code-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .code-title {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+      }
+      .code-lang {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent-dim);
+      }
+
+      pre {
+        padding: 22px;
+        overflow-x: auto;
+        font-family: var(--fn-mono);
+        font-size: 13px;
+        line-height: 1.85;
+        color: #b0b0c8;
+      }
+
+      .k {
+        color: var(--accent);
+      }
+      .s {
+        color: #9aba5a;
+      }
+      .c {
+        /* color: #2a2a42; */
+        color: #606060;
+      }
+      .f {
+        color: #9ecfef;
+      }
+      .t {
+        color: var(--warm);
+      }
+      .n {
+        color: #e0a86c;
+      }
+      .op {
+        color: #7070a0;
+      }
+
+      /* ── AI SECTION ── */
+      .ai-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 40px;
+      }
+
+      .ai-item {
+        background: var(--surface);
+        padding: 28px;
+      }
+
+      .ai-icon {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      /* ── ROADMAP ── */
+      .roadmap {
+        margin-top: 40px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .roadmap-phase {
+        background: var(--surface);
+        padding: 28px;
+      }
+
+      .roadmap-phase-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .roadmap-phase-label.now {
+        color: var(--accent);
+      }
+      .roadmap-phase-label.next {
+        color: var(--warm);
+      }
+      .roadmap-phase-label.future {
+        /* color: var(--muted); */
+        color: #c8f542;
+      }
+
+      .roadmap-items {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .roadmap-items li {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        /* color: var(--muted); */
+        color: #8c8c8c;
+        padding-left: 16px;
+        position: relative;
+        line-height: 1.5;
+      }
+
+      .roadmap-items li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        /* color: var(--accent-dim); */
+        color: #8c8c8c;
+        font-size: 11px;
+      }
+
+      .roadmap-items li.done {
+        color: #a0ccff;
+      }
+      .roadmap-items li.done::before {
+        content: "✓";
+        color: #a0ccff;
+      }
+
+      /* ── CALLOUT ── */
+      .callout {
+        border-left: 2px solid var(--accent);
+        background: var(--accent-glow);
+        border-radius: 0 6px 6px 0;
+        padding: 18px 22px;
+        margin: 24px 0;
+      }
+
+      .callout-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      .callout p {
+        font-size: 15px;
+        color: #9090b0;
+        margin: 0;
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        padding: 48px 0;
+        position: relative;
+        z-index: 1;
+      }
+
+      .footer-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .footer-left {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        /* color: var(--muted); */
+        line-height: 1.8;
+      }
+
+      .footer-left a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .footer-left a:hover {
+        text-decoration: underline;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        /* color: var(--muted); */
+        color: #c8f542;
+        border: 1px solid var(--border);
+        padding: 6px 14px;
+        border-radius: 100px;
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      /* ── REVEAL ── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ── ANIMATIONS ── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 720px) {
+        .philosophy-strip {
+          grid-template-columns: 1fr;
+        }
+        .connection-grid {
+          grid-template-columns: 1fr;
+        }
+        .conn-arrow {
+          display: none;
+        }
+        .lang-grid {
+          grid-template-columns: 1fr;
+        }
+        .ai-grid {
+          grid-template-columns: 1fr;
+        }
+        .roadmap {
+          grid-template-columns: 1fr;
+        }
+        .nav-links {
+          display: none;
+        }
+        .hero-equation {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- NAV -->
+    <nav>
+      <div class="nav-inner">
+        <div class="nav-left">
+          <a href="#" class="nav-brand">
+            <span class="nav-brand-be">Flow-Arch(Core) </span></a
+          >
+
+          <!-- <span class="nav-brand-sep">/</span> -->
+
+          <a href="../index.html" class="nav-brand">
+            <span class="nav-brand-fe">/Vanilla →</span>
+          </a>
+        </div>
+
+        <ul class="nav-links">
+          <li><a href="#philosophy">Philosophy</a></li>
+          <li><a href="#connection">vs Frontend</a></li>
+          <li><a href="#languages">Languages</a></li>
+          <li><a href="#ai">AI + Pure Fn</a></li>
+          <li><a href="#roadmap">Roadmap</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <section id="hero">
+      <div class="container">
+        <p class="hero-eyebrow">flow-arch / backend · exploration</p>
+        <h1>
+          Pure functions.<br />
+          <span class="line-italic">Declarative data.</span>
+          <span class="line-warm">No side effects.</span>
+        </h1>
+        <p class="hero-desc">
+          The backend should be as honest as the frontend.
+          <strong>Data transformation is just a function.</strong>
+          Business logic is just a pure expression. Infrastructure is just
+          plumbing around clean data models.
+        </p>
+        <div class="hero-cta">
+          <a href="#languages" class="btn btn-primary">Explore the Languages</a>
+          <a href="#philosophy" class="btn btn-ghost">Read the Philosophy</a>
+          <a href="../index.html" class="btn btn-ghost-vanilla"
+            >vanilla-flow frontend</a
+          >
+        </div>
+      </div>
+
+      <div class="hero-equation">
+        <span> <i class="hi">f</i> (data) → result<br /></span>
+        <span> <i class="hi">g</i> (result) → output<br /></span>
+        <span> <i class="hi">g ∘ f</i> (data) → output<br /></span>
+        <br />
+        no mutation.<br />
+        no hidden state.<br />
+        no surprises.
+      </div>
+    </section>
+
+    <!-- PHILOSOPHY -->
+    <section id="philosophy">
+      <div class="container reveal">
+        <p class="section-label">// 01 — Philosophy</p>
+        <h2>Why the backend<br />should be pure too.</h2>
+        <p>
+          Most backend code is a tangle of mutable state, hidden side effects,
+          and implicit dependencies. Debugging it means holding an entire
+          runtime in your head. Flow-Arch backend proposes a different approach.
+        </p>
+
+        <div class="callout">
+          <div class="callout-label">Core Claim</div>
+          <p>
+            A backend that processes data through pure functions is
+            <strong style="color: var(--text)"
+              >deterministic, testable, and auditable</strong
+            >
+            — by construction. Not by discipline. By design.
+          </p>
+        </div>
+
+        <div class="philosophy-strip">
+          <div class="phil-item">
+            <div class="phil-num">PRINCIPLE_01</div>
+            <div class="phil-title">Data In, Data Out</div>
+            <p class="phil-desc">
+              Every business rule is a pure function. Request in, response out.
+              No hidden reads. No unexpected writes.
+            </p>
+          </div>
+          <div class="phil-item">
+            <div class="phil-num">PRINCIPLE_02</div>
+            <div class="phil-title">Data Model is the Core</div>
+            <p class="phil-desc">
+              The schema is the real backend. Serverless functions are thin
+              wrappers. Infrastructure is just plumbing.
+            </p>
+          </div>
+          <div class="phil-item">
+            <div class="phil-num">PRINCIPLE_03</div>
+            <div class="phil-title">Side Effects at the Edge</div>
+            <p class="phil-desc">
+              DB reads, API calls, and logging live at the boundary. Everything
+              between input and output is pure.
+            </p>
+          </div>
+          <div class="phil-item">
+            <div class="phil-num">PRINCIPLE_04</div>
+            <div class="phil-title">Composition Over Configuration</div>
+            <p class="phil-desc">
+              Complex pipelines are built by composing simple functions. No
+              middleware forests. No plugin systems.
+            </p>
+          </div>
+          <div class="phil-item">
+            <div class="phil-num">PRINCIPLE_05</div>
+            <div class="phil-title">Types as Documentation</div>
+            <p class="phil-desc">
+              A strong type system documents intent at the function signature.
+              If it compiles, the contract is met.
+            </p>
+          </div>
+          <div class="phil-item">
+            <div class="phil-num">PRINCIPLE_06</div>
+            <div class="phil-title">Abandon Server Complexity</div>
+            <p class="phil-desc">
+              Serverless and edge functions eliminate the compatibility debt of
+              traditional servers. Focus on logic, not infrastructure.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONNECTION TO FRONTEND -->
+    <section id="connection">
+      <div class="container reveal">
+        <p class="section-label">// 02 — Relationship to Frontend</p>
+        <h2>Two halves of<br />one philosophy.</h2>
+        <p>
+          vanilla-flow and the pure backend are not separate projects. They are
+          the same idea applied to two different layers. The same mental model
+          runs through both.
+        </p>
+
+        <div class="connection-grid">
+          <div class="conn-box fe">
+            <div class="conn-tag fe">Frontend</div>
+            <div class="conn-name">vanilla-flow</div>
+            <p class="conn-desc">
+              Web Component + Shadow DOM<br />
+              State → Reducer → View<br />
+              Pure functions. Zero deps.
+            </p>
+          </div>
+          <div class="conn-arrow">⟷</div>
+          <div class="conn-box be">
+            <div class="conn-tag be">Backend</div>
+            <div class="conn-name">pure-backend</div>
+            <p class="conn-desc">
+              Serverless + Edge functions<br />
+              Request → Transform → Response<br />
+              Pure functions. Data model first.
+            </p>
+          </div>
+        </div>
+
+        <div class="conn-shared">
+          <div class="conn-shared-label">Shared across both layers</div>
+          <div class="conn-shared-items">
+            <span class="tag lit">pure functions</span>
+            <span class="tag lit">declarative style</span>
+            <span class="tag lit">immutable data</span>
+            <span class="tag lit">no hidden state</span>
+            <span class="tag lit">side effects at boundary</span>
+            <span class="tag lit">composition over inheritance</span>
+            <span class="tag">zero framework lock-in</span>
+            <span class="tag">data model first</span>
+          </div>
+        </div>
+
+        <div class="code-block" style="margin-top: 28px">
+          <div class="code-header">
+            <span class="code-title">the same loop — frontend and backend</span>
+            <span class="code-lang">CONCEPT</span>
+          </div>
+          <pre><span class="c">// Frontend (vanilla-flow)</span>
+<span class="t">State</span>  <span class="op">→</span> <span class="f">view</span>(state)   <span class="op">→</span> <span class="t">HTML</span>
+<span class="t">Action</span> <span class="op">→</span> <span class="f">reducer</span>(state, action) <span class="op">→</span> <span class="t">newState</span>
+
+<span class="c">// Backend (pure-backend)</span>
+<span class="t">Request</span> <span class="op">→</span> <span class="f">validate</span>(req)  <span class="op">→</span> <span class="t">Input</span>
+<span class="t">Input</span>   <span class="op">→</span> <span class="f">transform</span>(input) <span class="op">→</span> <span class="t">Result</span>
+<span class="t">Result</span>  <span class="op">→</span> <span class="f">respond</span>(result) <span class="op">→</span> <span class="t">Response</span>
+
+<span class="c">// Same idea. Different runtime.</span>
+<span class="c">// Data flows in one direction.</span>
+<span class="c">// Every step is a pure function.</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- LANGUAGES -->
+    <section id="languages">
+      <div class="container reveal">
+        <p class="section-label">// 03 — Languages</p>
+        <h2>Seven languages.<br />One philosophy.</h2>
+        <p>
+          Each language in this exploration offers a different perspective on
+          pure functional data processing — from pragmatic JS to mathematically
+          rigorous Haskell. The goal is not to pick a winner, but to understand
+          what each one teaches.
+        </p>
+
+        <div class="lang-grid">
+          <!-- JS -->
+          <div class="lang-card" style="--card-accent: #f7c77e">
+            <div class="lang-header">
+              <div class="lang-name">JavaScript</div>
+              <span class="lang-phase phase-now">Exploring Now</span>
+            </div>
+            <div class="lang-tagline">pure style by discipline</div>
+            <p class="lang-desc">
+              JS can write pure functions — but enforces nothing. The
+              exploration: how far can discipline and convention take you before
+              you need a type system?
+            </p>
+            <div class="lang-traits">
+              <span class="trait">map/filter/reduce</span>
+              <span class="trait">immutability by convention</span>
+              <span class="trait">closures</span>
+              <span class="trait">no enforcement</span>
+            </div>
+          </div>
+
+          <!-- TS -->
+          <div class="lang-card" style="--card-accent: #7eb8f7">
+            <div class="lang-header">
+              <div class="lang-name">TypeScript</div>
+              <span class="lang-phase phase-now">Exploring Now</span>
+            </div>
+            <div class="lang-tagline">types as a safety net</div>
+            <p class="lang-desc">
+              TypeScript's
+              <i
+                ><code
+                  style="
+                    font-size: 14px;
+                    color: var(--accent);
+                    font-weight: 700;
+                  "
+                  >readonly</code
+                ></i
+              >
+              , discriminated unions, and branded types push JS toward a more
+              honest functional style. Not Haskell — but a real step up.
+            </p>
+            <div class="lang-traits">
+              <span class="trait">readonly types</span>
+              <span class="trait">discriminated unions</span>
+              <span class="trait">type narrowing</span>
+              <span class="trait">branded types</span>
+            </div>
+          </div>
+
+          <!-- React -->
+          <div class="lang-card" style="--card-accent: #9ecfef">
+            <div class="lang-header">
+              <div class="lang-name">React</div>
+              <span class="lang-phase phase-now">Exploring Now</span>
+            </div>
+            <div class="lang-tagline">declarative UI as proof of concept</div>
+            <p class="lang-desc">
+              React's
+              <i>
+                <code
+                  style="
+                    font-size: 14px;
+                    color: var(--accent);
+                    font-weight: 700;
+                  "
+                  >useReducer</code
+                >
+              </i>
+
+              and server components show that pure functional style works at
+              scale. A reference point for what the browser can do.
+            </p>
+            <div class="lang-traits">
+              <span class="trait">useReducer</span>
+              <span class="trait">server components</span>
+              <span class="trait">pure render fn</span>
+              <span class="trait">unidirectional</span>
+            </div>
+          </div>
+
+          <!-- Elm -->
+          <div class="lang-card" style="--card-accent: #60c8a0">
+            <div class="lang-header">
+              <div class="lang-name">Elm</div>
+              <span class="lang-phase phase-next">Learning Next</span>
+            </div>
+            <div class="lang-tagline">enforced purity, zero runtime errors</div>
+            <p class="lang-desc">
+              Elm proves pure functional frontend is possible in production. Its
+              architecture directly inspired vanilla-flow. Learning Elm is
+              learning the foundation.
+            </p>
+            <div class="lang-traits">
+              <span class="trait">compiler-enforced pure</span>
+              <span class="trait">no runtime exceptions</span>
+              <span class="trait">The Elm Architecture</span>
+              <span class="trait">immutable by default</span>
+            </div>
+          </div>
+
+          <!-- Haskell -->
+          <div class="lang-card" style="--card-accent: #b09af0">
+            <div class="lang-header">
+              <div class="lang-name">Haskell</div>
+              <span class="lang-phase phase-next">Learning Next</span>
+            </div>
+            <div class="lang-tagline">pure functional orthodoxy</div>
+            <p class="lang-desc">
+              The reference implementation of pure functional programming. IO
+              Monad, type classes, lazy evaluation. Understanding Haskell means
+              understanding why the rules exist.
+            </p>
+            <div class="lang-traits">
+              <span class="trait">IO Monad</span>
+              <span class="trait">type classes</span>
+              <span class="trait">lazy evaluation</span>
+              <span class="trait">pattern matching</span>
+            </div>
+          </div>
+
+          <!-- Scala -->
+          <div class="lang-card" style="--card-accent: #e07878">
+            <div class="lang-header">
+              <div class="lang-name">Scala</div>
+              <span class="lang-phase phase-future">Future</span>
+            </div>
+            <div class="lang-tagline">functional on the JVM</div>
+            <p class="lang-desc">
+              Scala bridges OOP and functional. Cats Effect and ZIO bring
+              principled effect systems to the JVM. Industrial-scale pure
+              functional data processing.
+            </p>
+            <div class="lang-traits">
+              <span class="trait">Cats Effect</span>
+              <span class="trait">ZIO</span>
+              <span class="trait">case classes</span>
+              <span class="trait">for-comprehensions</span>
+            </div>
+          </div>
+
+          <!-- Elixir -->
+          <div class="lang-card" style="--card-accent: #c87ef0">
+            <div class="lang-header">
+              <div class="lang-name">Elixir</div>
+              <span class="lang-phase phase-future">Future</span>
+            </div>
+            <div class="lang-tagline">
+              functional + distributed + fault-tolerant
+            </div>
+            <p class="lang-desc">
+              Erlang's VM with a modern syntax. Immutable data, pattern
+              matching, and actor model concurrency. The proof that functional
+              scales to telecom reliability.
+            </p>
+            <div class="lang-traits">
+              <span class="trait">immutable data</span>
+              <span class="trait">pattern matching</span>
+              <span class="trait">actor model</span>
+              <span class="trait">fault tolerance</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CODE COMPARISON -->
+        <h3
+          style="
+            margin-top: 48px;
+            margin-bottom: 16px;
+            font-size: 16px;
+            color: var(--muted);
+            font-family: var(--fn-mono);
+            font-weight: 400;
+            letter-spacing: 0.05em;
+          "
+        >
+          Same task — pure data transformation — in each language
+        </h3>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-title"
+              >filter active users, extract emails — pure function</span
+            >
+            <span class="code-lang">JS → TS → Haskell → Elixir</span>
+          </div>
+          <pre><span class="c">// JavaScript — pure by convention</span>
+<span class="k">const</span> <span class="f">getActiveEmails</span> = (users) =>
+  users
+    .<span class="f">filter</span>(u => u.active)
+    .<span class="f">map</span>(u => u.email)
+
+
+<span class="c">// TypeScript — pure + type-safe</span>
+<span class="k">type</span> <span class="t">User</span> = <span class="t">Readonly</span>&lt;{ email: <span class="t">string</span>; active: <span class="t">boolean</span> }&gt;
+
+<span class="k">const</span> <span class="f">getActiveEmails</span> = (users: <span class="t">ReadonlyArray</span>&lt;<span class="t">User</span>&gt;): <span class="t">ReadonlyArray</span>&lt;<span class="t">string</span>&gt; =>
+  users
+    .<span class="f">filter</span>(u => u.active)
+    .<span class="f">map</span>(u => u.email)
+
+
+<span class="c">-- Haskell — pure enforced by compiler</span>
+<span class="f">getActiveEmails</span> :: [<span class="t">User</span>] -> [<span class="t">String</span>]
+<span class="f">getActiveEmails</span> users =
+  <span class="f">map</span> email $ <span class="f">filter</span> active users
+
+
+<span class="c"># Elixir — pure + pattern matching</span>
+<span class="f">def</span> get_active_emails(users) <span class="f">do</span>
+  users
+  |> <span class="t">Enum</span>.<span class="f">filter</span>(&amp; &amp;1.active)
+  |> <span class="t">Enum</span>.<span class="f">map</span>(&amp; &amp;1.email)
+<span class="f">end</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI + PURE FN -->
+    <section id="ai">
+      <div class="container reveal">
+        <p class="section-label">// 04 — AI + Pure Functions</p>
+        <h2>The future is<br />AI + strong types + declarative DSL.</h2>
+        <p>
+          AI code generation works best when the target is pure and declarative.
+          A function with a clear type signature and no side effects is
+          precisely the kind of code AI can generate, verify, and compose
+          reliably.
+        </p>
+
+        <div class="callout">
+          <div class="callout-label">The Thesis</div>
+          <p>
+            AI generates code. Pure functional code is
+            <strong style="color: var(--text)"
+              >verifiable, composable, and auditable</strong
+            >. Strong types catch AI errors at compile time. Declarative DSLs
+            constrain the space of what AI can generate — which makes generation
+            more reliable, not less powerful.
+          </p>
+        </div>
+
+        <div class="ai-grid">
+          <div class="ai-item">
+            <div class="ai-icon">AI_ROLE_01</div>
+            <h3>Generate pure transformations</h3>
+            <p style="font-size: 14px">
+              AI is excellent at generating pure data transformation functions.
+              The type signature is the spec. The compiler is the verifier.
+              Human reviews the intent, not the implementation detail.
+            </p>
+          </div>
+          <div class="ai-item">
+            <div class="ai-icon">AI_ROLE_02</div>
+            <h3>Compose pipelines from primitives</h3>
+            <p style="font-size: 14px">
+              A library of small pure functions becomes a palette. AI composes
+              them into complex pipelines. Each primitive is human-verified.
+              Compositions are AI-generated.
+            </p>
+          </div>
+          <div class="ai-item">
+            <div class="ai-icon">AI_ROLE_03</div>
+            <h3>Type-driven development</h3>
+            <p style="font-size: 14px">
+              Define the types. Let AI implement the functions. The type system
+              rejects incorrect implementations automatically. Types become the
+              contract between human intent and AI execution.
+            </p>
+          </div>
+          <div class="ai-item">
+            <div class="ai-icon">AI_ROLE_04</div>
+            <h3>Declarative DSLs as constraint</h3>
+            <p style="font-size: 14px">
+              A well-designed DSL limits what AI can express — and that is the
+              point. Constrained generation is more reliable. SQL is an example:
+              AI writes SQL well because SQL is declarative.
+            </p>
+          </div>
+        </div>
+
+        <div class="code-block" style="margin-top: 28px">
+          <div class="code-header">
+            <span class="code-title">type-driven AI workflow</span>
+            <span class="code-lang">TS</span>
+          </div>
+          <pre><span class="c">// Step 1: Human defines types (the contract)</span>
+<span class="k">type</span> <span class="t">Order</span> = <span class="t">Readonly</span>&lt;{
+  id:       <span class="t">string</span>
+  items:    <span class="t">ReadonlyArray</span>&lt;<span class="t">LineItem</span>&gt;
+  discount: <span class="t">number</span>
+}&gt;
+
+<span class="k">type</span> <span class="t">OrderSummary</span> = <span class="t">Readonly</span>&lt;{
+  total:    <span class="t">number</span>
+  tax:      <span class="t">number</span>
+  payable:  <span class="t">number</span>
+}&gt;
+
+<span class="c">// Step 2: Human writes the signature only</span>
+<span class="k">declare const</span> <span class="f">summariseOrder</span>: (<span class="t">Order</span>) => <span class="t">OrderSummary</span>
+
+<span class="c">// Step 3: AI implements the body</span>
+<span class="c">// Step 4: TypeScript verifies the types match</span>
+<span class="c">// Step 5: Tests verify the logic</span>
+
+<span class="c">// The type is the spec.
+// The compiler is the first reviewer.
+// Purity means the function is trivially testable.</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROADMAP -->
+    <section id="roadmap">
+      <div class="container reveal">
+        <p class="section-label">// 05 — Learning Roadmap</p>
+        <h2>The exploration<br />plan.</h2>
+        <p>
+          This is a long-term, public record of learning. Each phase builds on
+          the last. No deadlines — only direction.
+        </p>
+
+        <div class="roadmap">
+          <div class="roadmap-phase">
+            <div class="roadmap-phase-label now">Phase 1 · Now</div>
+            <ul class="roadmap-items">
+              <li class="done">vanilla-flow frontend core</li>
+              <li class="done">Pure function methodology documented</li>
+              <li>JS pure backend patterns</li>
+              <li>TypeScript readonly + discriminated unions</li>
+              <li>React useReducer + server components</li>
+              <li>Cloudflare Workers pure API demos</li>
+              <li>Data model design patterns</li>
+            </ul>
+          </div>
+          <div class="roadmap-phase">
+            <div class="roadmap-phase-label next">Phase 2 · Next</div>
+            <ul class="roadmap-items">
+              <li>Elm — The Elm Architecture deep dive</li>
+              <li>Elm — production frontend demo</li>
+              <li>Haskell — IO Monad and effect isolation</li>
+              <li>Haskell — pure API server (Servant)</li>
+              <li>AI + types workflow experiments</li>
+              <li>Type-driven development demos</li>
+            </ul>
+          </div>
+          <div class="roadmap-phase">
+            <div class="roadmap-phase-label future">Phase 3 · Future</div>
+            <ul class="roadmap-items">
+              <li>Scala — Cats Effect and ZIO</li>
+              <li>Elixir — functional pipelines at scale</li>
+              <li>Erlang — fault tolerance patterns</li>
+              <li>Declarative DSL design</li>
+              <li>AI-assisted pure function generation</li>
+              <li>Cross-language pure data pipeline</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div class="footer-inner">
+          <div class="footer-left">
+            <strong style="color: var(--accent)"
+              >flow-arch / pure-backend</strong
+            >
+            — an open exploration.<br />
+            Frontend: <a href="../index.html">vanilla-flow</a> · Limitations:
+            <a href="../limitations.html">limitations.html</a> · Contribute:
+            <a href="../CONTRIBUTING.md">CONTRIBUTING.md</a>
+          </div>
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            phase 1 · actively exploring
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("visible");
+              observer.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.08 },
+      );
+
+      document
+        .querySelectorAll(".reveal")
+        .forEach((el) => observer.observe(el));
+    </script>
+  </body>
+</html>

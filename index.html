@@ -1,0 +1,1237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flow-Arch — A New Frontend Philosophy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&family=Newsreader:ital,wght@0,300;0,400;1,300;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
+      :root {
+        --bg: #0a0a0a;
+        --surface: #111111;
+        --border: #1e1e1e;
+        --accent: #c8f542;
+        /* --mono: #7eb8f7; */
+        --accent-dim: #8faa2a;
+        --text: #e8e8e2;
+        --muted: #4f4e4e;
+        --code-bg: #161616;
+        --font-display: "Syne", sans-serif;
+        --font-body: "Newsreader", serif;
+        --font-mono: "DM Mono", monospace;
+      }
+
+      /* ============================================================
+       RESET & BASE
+    ============================================================ */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 18px;
+        line-height: 1.7;
+        overflow-x: hidden;
+      }
+
+      ::selection {
+        background: var(--accent);
+        color: #000;
+      }
+
+      /* ============================================================
+       NOISE OVERLAY
+    ============================================================ */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 1000;
+        opacity: 0.4;
+      }
+
+      /* ============================================================
+       LAYOUT
+    ============================================================ */
+      .container {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+
+      section {
+        padding: 80px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      /* ============================================================
+       NAV
+    ============================================================ */
+      nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: rgba(10, 10, 10, 0.85);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+      }
+
+      nav .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 56px;
+      }
+
+      .nav-logo {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--accent);
+        letter-spacing: 0.08em;
+        text-decoration: none;
+      }
+      .nav-logo-core {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        /* color: var(--accent); */
+        color: #7eb8f7;
+        letter-spacing: 0.08em;
+        text-decoration: none;
+      }
+      .nav-logo-core:hover {
+        text-decoration: underline;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 28px;
+        list-style: none;
+      }
+
+      .nav-links a {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--muted);
+        text-decoration: none;
+        letter-spacing: 0.06em;
+        transition: color 0.2s;
+      }
+
+      .nav-links a:hover {
+        color: var(--accent);
+      }
+
+      /* ============================================================
+       HERO
+    ============================================================ */
+      #hero {
+        padding-top: 160px;
+        padding-bottom: 100px;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-eyebrow {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 28px;
+        opacity: 0;
+        animation: fadeUp 0.6s ease 0.1s forwards;
+      }
+
+      h1 {
+        font-family: var(--font-display);
+        font-size: clamp(48px, 8vw, 88px);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        margin-bottom: 32px;
+        opacity: 0;
+        animation: fadeUp 0.6s ease 0.2s forwards;
+      }
+
+      h1 em {
+        font-style: italic;
+        font-family: var(--font-body);
+        font-weight: 300;
+        color: var(--accent);
+      }
+
+      .hero-desc {
+        font-size: 20px;
+        color: var(--muted);
+        max-width: 560px;
+        line-height: 1.6;
+        margin-bottom: 48px;
+        opacity: 0;
+        animation: fadeUp 0.6s ease 0.3s forwards;
+      }
+
+      .hero-desc strong {
+        color: var(--text);
+        font-weight: 400;
+      }
+
+      .hero-cta {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        opacity: 0;
+        animation: fadeUp 0.6s ease 0.4s forwards;
+      }
+
+      .btn {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        padding: 12px 24px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: inline-block;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #000;
+        font-weight: 500;
+      }
+
+      .btn-primary:hover {
+        background: #d9ff55;
+        transform: translateY(-1px);
+      }
+
+      .btn-secondary {
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover {
+        color: var(--text);
+        border-color: #333;
+      }
+
+      /* grid lines decoration */
+      .hero-grid {
+        position: absolute;
+        right: -100px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 400px;
+        height: 400px;
+        opacity: 0.04;
+        pointer-events: none;
+      }
+
+      .hero-grid line {
+        stroke: var(--accent);
+        stroke-width: 1;
+      }
+
+      /* ============================================================
+       SECTION HEADERS
+    ============================================================ */
+      .section-label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        color: var(--accent);
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
+
+      h2 {
+        font-family: var(--font-display);
+        font-size: clamp(28px, 4vw, 40px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 24px;
+        line-height: 1.2;
+      }
+
+      h3 {
+        font-family: var(--font-display);
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        margin-bottom: 10px;
+      }
+
+      p {
+        margin-bottom: 16px;
+        color: #b0b0aa;
+      }
+      p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* ============================================================
+       PHILOSOPHY PILLARS
+    ============================================================ */
+      .pillars {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 48px;
+      }
+
+      .pillar {
+        background: var(--surface);
+        padding: 32px;
+        transition: background 0.2s;
+      }
+
+      .pillar:hover {
+        background: #161616;
+      }
+
+      .pillar-icon {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--accent);
+        letter-spacing: 0.1em;
+        margin-bottom: 14px;
+        display: block;
+      }
+
+      /* ============================================================
+       RULES / METHODOLOGY
+    ============================================================ */
+      .rules-list {
+        margin-top: 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .rule {
+        display: grid;
+        grid-template-columns: 56px 1fr;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.15s;
+      }
+
+      .rule:last-child {
+        border-bottom: none;
+      }
+      .rule:hover {
+        background: var(--surface);
+      }
+
+      .rule-num {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--accent-dim);
+        padding: 24px 0 24px 24px;
+        letter-spacing: 0.05em;
+      }
+
+      .rule-body {
+        padding: 24px 24px 24px 0;
+        border-left: 1px solid var(--border);
+      }
+
+      .rule-title {
+        font-family: var(--font-display);
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+
+      .rule-desc {
+        font-size: 14px;
+        /* color: var(--muted); */
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      /* ============================================================
+       CODE BLOCK
+    ============================================================ */
+      .code-block {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 32px 0;
+      }
+
+      .code-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .code-title {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+      }
+
+      .code-dots {
+        display: flex;
+        gap: 6px;
+      }
+
+      .code-dots span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--border);
+      }
+
+      pre {
+        padding: 24px;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.8;
+        color: #c8c8c0;
+      }
+
+      .c-comment {
+        color: #747474;
+      }
+      .c-keyword {
+        color: var(--accent);
+      }
+      .c-string {
+        color: #8faa2a;
+      }
+      .c-fn {
+        color: #7ecfcf;
+      }
+      .c-num {
+        color: #e0a86c;
+      }
+
+      /* ============================================================
+       STACK TABLE
+    ============================================================ */
+      .stack-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 40px;
+      }
+
+      .stack-item {
+        background: var(--surface);
+        padding: 28px;
+      }
+
+      .stack-layer {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+
+      .stack-name {
+        font-family: var(--font-display);
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 6px;
+      }
+
+      .stack-desc {
+        font-size: 13px;
+        /* color: var(--muted); */
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      /* ============================================================
+       ROADMAP
+    ============================================================ */
+      .roadmap {
+        margin-top: 40px;
+        position: relative;
+        padding-left: 24px;
+        border-left: 1px solid var(--border);
+      }
+
+      .roadmap-item {
+        margin-bottom: 36px;
+        position: relative;
+      }
+
+      .roadmap-item::before {
+        content: "";
+        position: absolute;
+        left: -28px;
+        top: 6px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--border);
+        border: 2px solid var(--bg);
+      }
+
+      .roadmap-item.done::before {
+        background: var(--accent);
+      }
+
+      .roadmap-item.active::before {
+        background: var(--accent);
+        box-shadow: 0 0 0 4px rgba(200, 245, 66, 0.15);
+      }
+
+      .roadmap-tag {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      .roadmap-tag.done-tag {
+        color: var(--accent-dim);
+      }
+      .roadmap-tag.active-tag {
+        color: var(--accent);
+      }
+
+      .roadmap-title {
+        font-family: var(--font-display);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 4px;
+      }
+
+      .roadmap-desc {
+        font-size: 14px;
+        /* color: var(--muted); */
+        margin: 0;
+      }
+
+      /* ============================================================
+       MANIFESTO QUOTE
+    ============================================================ */
+      .manifesto {
+        border-left: 2px solid var(--accent);
+        padding: 24px 32px;
+        margin: 40px 0;
+        background: rgba(200, 245, 66, 0.03);
+        border-radius: 0 8px 8px 0;
+      }
+
+      .manifesto p {
+        font-family: var(--font-body);
+        font-style: italic;
+        font-size: 20px;
+        line-height: 1.7;
+        color: var(--text);
+        margin: 0;
+      }
+
+      /* ============================================================
+       FOOTER
+    ============================================================ */
+      footer {
+        padding: 48px 0;
+        border-top: 1px solid var(--border);
+      }
+
+      .footer-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .footer-left {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        /* color: var(--muted); */
+      }
+
+      .footer-left strong {
+        color: var(--accent);
+        font-weight: 500;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--accent-dim);
+        border: 1px solid var(--border);
+        padding: 6px 14px;
+        border-radius: 100px;
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      /* ============================================================
+       ANIMATIONS
+    ============================================================ */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+
+      /* scroll-triggered reveals */
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+      @media (max-width: 600px) {
+        .stack-grid {
+          grid-template-columns: 1fr;
+        }
+        .rule {
+          grid-template-columns: 40px 1fr;
+        }
+        .nav-links {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- NAV -->
+    <nav>
+      <div class="container">
+        <div class="nav-brand">
+          <a href="./flowcore-index.html" class="nav-logo-core"
+            >← Flow-arch(Core)</a
+          >
+          <!-- <span>/</span> -->
+          <a href="#" class="nav-logo">/Vanilla</a>
+        </div>
+
+        <ul class="nav-links">
+          <li><a href="#philosophy">Philosophy</a></li>
+          <li><a href="#rules">Rules</a></li>
+          <li><a href="#stack">Stack</a></li>
+          <li><a href="#roadmap">Roadmap</a></li>
+          <li><a href="#limitations">Limitations</a></li>
+          <li>
+            <a href="flow-starter/index.html" style="color: var(--accent)"
+              >Get Started →</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- HERO -->
+    <section id="hero">
+      <div class="container">
+        <p class="hero-eyebrow">Experimental Framework · Open Source · v0.1</p>
+        <h1>A <em>new</em><br />frontend<br />philosophy.</h1>
+        <p class="hero-desc">
+          <strong>Flow-Arch/Vanilla</strong> is an exploration of what frontend
+          development looks like when you take pure functions, declarative
+          style, and Web Components seriously — with zero dependencies and zero
+          compromise.
+        </p>
+
+        <div class="hero-cta">
+          <a href="flow-starter/index.html" class="btn btn-primary"
+            >Get Started →</a
+          >
+          <a href="#philosophy" class="btn btn-secondary"
+            >Read the Philosophy</a
+          >
+          <a href="https://github.com" class="btn btn-secondary"
+            >View on GitHub</a
+          >
+        </div>
+      </div>
+
+      <svg class="hero-grid" viewBox="0 0 400 400">
+        <defs>
+          <pattern
+            id="grid"
+            width="40"
+            height="40"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M 40 0 L 0 0 0 40"
+              fill="none"
+              stroke="%23c8f542"
+              stroke-width="1"
+            />
+          </pattern>
+        </defs>
+        <rect width="400" height="400" fill="url(%23grid)" />
+      </svg>
+    </section>
+
+    <!-- PHILOSOPHY -->
+    <section id="philosophy">
+      <div class="container reveal">
+        <p class="section-label">// 01 — Introduction</p>
+        <h2>Why does this exist?</h2>
+
+        <p>
+          Modern frontend is drowning in abstraction. Frameworks grow larger,
+          dependency trees deeper, and the distance between a developer's intent
+          and the actual browser grows wider every year.
+        </p>
+
+        <p>
+          Flow-Arch/Vanilla asks a simple question:
+          <em>what if we stripped everything back?</em>
+          No virtual DOM. No build step. No framework runtime. Just the platform
+          — and a set of disciplined ideas about how to organise it.
+        </p>
+
+        <div class="manifesto">
+          <p>
+            <!-- "Complexity is not a feature. State mutation is not inevitable. The
+            browser is already powerful enough — we just stopped trusting it." -->
+            Flow-Arch turns complex engineering into standardized assembly. No
+            magic, just logic. If it breaks, unscrew and replace.
+          </p>
+        </div>
+
+        <p>
+          This project is a long-term public exploration. Every demo, every
+          experiment, and every failure is documented. The goal is not a
+          production framework — it is a
+          <strong style="color: var(--text)">record of thinking</strong>.
+        </p>
+
+        <div class="pillars">
+          <div class="pillar">
+            <span class="pillar-icon">PRINCIPLE_01</span>
+            <h3>Pure Functions First</h3>
+            <p>
+              Every piece of logic that can be pure, must be pure. Side effects
+              are real — but they belong at the edges, not the core.
+            </p>
+          </div>
+          <div class="pillar">
+            <span class="pillar-icon">PRINCIPLE_02</span>
+            <h3>Declare, Don't Instruct</h3>
+            <p>
+              Describe what the UI should look like given a state. Don't write
+              step-by-step DOM surgery. View = f(State).
+            </p>
+          </div>
+          <div class="pillar">
+            <span class="pillar-icon">PRINCIPLE_03</span>
+            <h3>Zero Dependencies</h3>
+            <p>
+              Every dependency is a liability. The Web Platform is the
+              framework. Use it directly and deliberately.
+            </p>
+          </div>
+          <div class="pillar">
+            <span class="pillar-icon">PRINCIPLE_04</span>
+            <h3>One Direction, Always</h3>
+            <p>
+              Data flows one way. State changes only through explicit actions.
+              No two-way binding. No hidden channels.
+            </p>
+          </div>
+          <div class="pillar">
+            <span class="pillar-icon">PRINCIPLE_05</span>
+            <h3>Encapsulate with Shadow DOM</h3>
+            <p>
+              Components own their styles and structure. No CSS leaks. No global
+              conflicts. Real isolation.
+            </p>
+          </div>
+          <div class="pillar">
+            <span class="pillar-icon">PRINCIPLE_06</span>
+            <h3>SSR & SEO Ready</h3>
+            <p>
+              Web Components render on the server. Declarative Shadow DOM means
+              no flash of unstyled content. The web should still be crawlable.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RULES -->
+    <section id="rules">
+      <div class="container reveal">
+        <p class="section-label">// 02 — Methodology</p>
+        <h2>The Rules</h2>
+        <p>
+          These are not suggestions. They are the constraints that make
+          Flow-Arch what it is. Constraints breed clarity.
+        </p>
+
+        <div class="rules-list">
+          <div class="rule">
+            <span class="rule-num">R-01</span>
+            <div class="rule-body">
+              <div class="rule-title">State is a plain object</div>
+              <p class="rule-desc">
+                All component state lives in one plain JS object. No classes, no
+                proxies, no observables. Just data.
+              </p>
+            </div>
+          </div>
+
+          <div class="rule">
+            <span class="rule-num">R-02</span>
+            <div class="rule-body">
+              <div class="rule-title">State only changes through a Reducer</div>
+              <p class="rule-desc">
+                The reducer is a pure function:
+                <code
+                  style="
+                    font-family: var(--font-mono);
+                    font-size: 12px;
+                    color: var(--accent);
+                  "
+                  >(state, action) → newState</code
+                >. No exceptions. No shortcuts.
+              </p>
+            </div>
+          </div>
+
+          <div class="rule">
+            <span class="rule-num">R-03</span>
+            <div class="rule-body">
+              <div class="rule-title">View is a pure function of State</div>
+              <p class="rule-desc">
+                The view function takes state and returns HTML. It has no
+                memory, no side effects, no access to the outside world.
+              </p>
+            </div>
+          </div>
+
+          <div class="rule">
+            <span class="rule-num">R-04</span>
+            <div class="rule-body">
+              <div class="rule-title">
+                Side effects live in the Component shell only
+              </div>
+              <p class="rule-desc">
+                DOM manipulation, timers, fetch calls — all of this belongs in
+                the Web Component lifecycle methods, never inside reducers or
+                view functions.
+              </p>
+            </div>
+          </div>
+
+          <div class="rule">
+            <span class="rule-num">R-05</span>
+            <div class="rule-body">
+              <div class="rule-title">Never mutate. Always return new.</div>
+              <p class="rule-desc">
+                Use spread operators and immutable patterns. The original state
+                object is never modified — a new one is always returned.
+              </p>
+            </div>
+          </div>
+
+          <div class="rule">
+            <span class="rule-num">R-06</span>
+            <div class="rule-body">
+              <div class="rule-title">No framework, no build step</div>
+              <p class="rule-desc">
+                Flow-Arch runs directly in the browser. No Webpack, no Vite, no
+                transpilation required. ES Modules only.
+              </p>
+            </div>
+          </div>
+
+          <div class="rule">
+            <span class="rule-num">R-07</span>
+            <div class="rule-body">
+              <div class="rule-title">Document every limitation honestly</div>
+              <p class="rule-desc">
+                This is an exploration, not a product. Known problems are
+                recorded openly. Failure is data.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CORE PATTERN CODE -->
+    <section id="pattern">
+      <div class="container reveal">
+        <p class="section-label">// 03 — Core Pattern</p>
+        <h2>The Loop</h2>
+        <p>
+          Every Flow-Arch component follows the same loop. This is the entire
+          mental model.
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-title">flow-counter.js — minimal example</span>
+            <div class="code-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><span class="c-comment">// ─── 1. STATE MODEL (pure data) ───────────────────────</span>
+<span class="c-keyword">const</span> <span class="c-fn">createInitialState</span> = () => ({ count: <span class="c-num">0</span> })
+
+<span class="c-comment">// ─── 2. REDUCER (pure function) ────────────────────────</span>
+<span class="c-comment">//   (state, action) → newState</span>
+<span class="c-comment">//   Never mutates. Always returns new object.</span>
+<span class="c-keyword">const</span> <span class="c-fn">reducer</span> = (state, action) => {
+  <span class="c-keyword">switch</span> (action.type) {
+    <span class="c-keyword">case</span> <span class="c-string">"INCREMENT"</span>: <span class="c-keyword">return</span> { ...state, count: state.count + <span class="c-num">1</span> }
+    <span class="c-keyword">case</span> <span class="c-string">"DECREMENT"</span>: <span class="c-keyword">return</span> { ...state, count: state.count - <span class="c-num">1</span> }
+    <span class="c-keyword">default</span>:         <span class="c-keyword">return</span> state
+  }
+}
+
+<span class="c-comment">// ─── 3. VIEW (pure function) ───────────────────────────</span>
+<span class="c-comment">//   View = f(State)</span>
+<span class="c-comment">//   State in → HTML string out. Nothing else.</span>
+<span class="c-keyword">const</span> <span class="c-fn">view</span> = (state) => `
+  &lt;div class="count"&gt;${state.count}&lt;/div&gt;
+  &lt;button data-action="DECREMENT"&gt;−&lt;/button&gt;
+  &lt;button data-action="INCREMENT"&gt;+&lt;/button&gt;
+`
+
+<span class="c-comment">// ─── 4. WEB COMPONENT (side-effect boundary) ──────────</span>
+<span class="c-comment">//   The only place where DOM mutation is allowed.</span>
+<span class="c-keyword">class</span> <span class="c-fn">FlowCounter</span> <span class="c-keyword">extends</span> HTMLElement {
+  constructor() {
+    <span class="c-keyword">super</span>()
+    <span class="c-keyword">this</span>.attachShadow({ mode: <span class="c-string">"open"</span> })
+    <span class="c-keyword">this</span>.state = <span class="c-fn">createInitialState</span>()
+    <span class="c-keyword">this</span>.dispatch = (action) => {
+      <span class="c-keyword">this</span>.state = <span class="c-fn">reducer</span>(<span class="c-keyword">this</span>.state, action)
+      <span class="c-keyword">this</span>.<span class="c-fn">render</span>()
+    }
+  }
+  <span class="c-fn">connectedCallback</span>() {
+    <span class="c-keyword">this</span>.<span class="c-fn">render</span>()
+    <span class="c-keyword">this</span>.shadowRoot.addEventListener(<span class="c-string">"click"</span>, (e) => {
+      <span class="c-keyword">const</span> type = e.target.dataset.action
+      <span class="c-keyword">if</span> (type) <span class="c-keyword">this</span>.<span class="c-fn">dispatch</span>({ type })
+    })
+  }
+  <span class="c-fn">render</span>() { <span class="c-keyword">this</span>.shadowRoot.innerHTML = <span class="c-fn">view</span>(<span class="c-keyword">this</span>.state) }
+}
+
+customElements.<span class="c-fn">define</span>(<span class="c-string">"flow-counter"</span>, FlowCounter)</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- STACK -->
+    <section id="stack">
+      <div class="container reveal">
+        <p class="section-label">// 04 — Technology Stack</p>
+        <h2>What Flow-Arch is built on</h2>
+        <p>
+          No invented abstractions. Every layer maps directly to a web standard
+          or a mathematical concept.
+        </p>
+
+        <div class="stack-grid">
+          <div class="stack-item">
+            <div class="stack-layer">Frontend · Structure</div>
+            <div class="stack-name">Web Components</div>
+            <p class="stack-desc">
+              Native custom elements. No polyfill. No runtime overhead. Just the
+              platform.
+            </p>
+          </div>
+          <div class="stack-item">
+            <div class="stack-layer">Frontend · Isolation</div>
+            <div class="stack-name">Shadow DOM</div>
+            <p class="stack-desc">
+              True style and DOM encapsulation. Components are islands. No leaks
+              possible.
+            </p>
+          </div>
+          <div class="stack-item">
+            <div class="stack-layer">Frontend · Logic</div>
+            <div class="stack-name">Pure Functions</div>
+            <p class="stack-desc">
+              Reducer + View are stateless, testable, deterministic. Inspired by
+              Elm and Haskell.
+            </p>
+          </div>
+          <div class="stack-item">
+            <div class="stack-layer">Frontend · Data</div>
+            <div class="stack-name">Unidirectional Flow</div>
+            <p class="stack-desc">
+              State → View → Action → State. One loop. No exceptions.
+              Predictable by design.
+            </p>
+          </div>
+          <div class="stack-item">
+            <div class="stack-layer">Backend · Runtime</div>
+            <div class="stack-name">Serverless / Edge</div>
+            <p class="stack-desc">
+              No server to maintain. No compatibility debt. Business logic lives
+              in pure functions.
+            </p>
+          </div>
+          <div class="stack-item">
+            <div class="stack-layer">Backend · Core</div>
+            <div class="stack-name">Data Model First</div>
+            <p class="stack-desc">
+              The data schema is the real backend. Infrastructure is just
+              plumbing around it.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROADMAP -->
+    <section id="roadmap">
+      <div class="container reveal">
+        <p class="section-label">// 05 — Roadmap</p>
+        <h2>Where this is going</h2>
+        <p>
+          This is a learning project. The roadmap is a record of intent, not a
+          promise.
+        </p>
+
+        <div class="roadmap">
+          <div class="roadmap-item done">
+            <div class="roadmap-tag done-tag">✓ Complete</div>
+            <div class="roadmap-title">Demo 00 — Counter</div>
+            <p class="roadmap-desc">
+              Minimal complete example. State + Reducer + View + Web Component.
+              The loop in its simplest form.
+            </p>
+          </div>
+
+          <div class="roadmap-item done">
+            <div class="roadmap-tag done-tag">✓ Complete</div>
+            <div class="roadmap-title">Demo 01 — Timer</div>
+            <p class="roadmap-desc">
+              Introduces async side effects (setInterval) and component cleanup
+              lifecycle.
+            </p>
+          </div>
+
+          <div class="roadmap-item active">
+            <div class="roadmap-tag active-tag">→ In Progress</div>
+            <div class="roadmap-title">Demo 02 — Props System</div>
+            <p class="roadmap-desc">
+              Exploring observedAttributes to pass initial state into components
+              from HTML attributes.
+            </p>
+          </div>
+
+          <div class="roadmap-item">
+            <div class="roadmap-tag">Planned</div>
+            <div class="roadmap-title">Demo 03 — Component Communication</div>
+            <p class="roadmap-desc">
+              Custom events as the messaging layer between sibling components.
+            </p>
+          </div>
+
+          <div class="roadmap-item">
+            <div class="roadmap-tag">Planned</div>
+            <div class="roadmap-title">Demo 04 — Todo App</div>
+            <p class="roadmap-desc">
+              First complex state example. Lists, filtering, persistence.
+            </p>
+          </div>
+
+          <div class="roadmap-item">
+            <div class="roadmap-tag">Exploring</div>
+            <div class="roadmap-title">DOM Diff Strategy</div>
+            <p class="roadmap-desc">
+              Replacing innerHTML with a minimal diffing approach to avoid full
+              re-renders.
+            </p>
+          </div>
+
+          <div class="roadmap-item">
+            <div class="roadmap-tag">Exploring</div>
+            <div class="roadmap-title">Serverless Backend Demos</div>
+            <p class="roadmap-desc">
+              Pure function APIs on Cloudflare Workers. Data model design
+              without server complexity.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIMITATIONS -->
+    <section id="limitations">
+      <div class="container reveal">
+        <p class="section-label">// 06 — Known Limitations</p>
+        <h2>What this doesn't solve (yet)</h2>
+        <p>
+          Intellectual honesty is part of the methodology.
+          <br />These are real problems, openly recorded.
+        </p>
+
+        <a href="./limitations.html" class="btn btn-primary"> More About </a>
+
+        <div class="rules-list" style="margin-top: 32px">
+          <div class="rule">
+            <span class="rule-num">L-01</span>
+            <div class="rule-body">
+              <div class="rule-title">
+                Full innerHTML replacement on every render
+              </div>
+              <p class="rule-desc">
+                Currently the entire Shadow DOM is rebuilt on each state change.
+                This is expensive for complex components and loses input focus.
+                A diffing strategy is needed.
+              </p>
+            </div>
+          </div>
+          <div class="rule">
+            <span class="rule-num">L-02</span>
+            <div class="rule-body">
+              <div class="rule-title">No inter-component state management</div>
+              <p class="rule-desc">
+                Components are currently isolated islands. There is no global
+                store or event bus yet.
+              </p>
+            </div>
+          </div>
+          <div class="rule">
+            <span class="rule-num">L-03</span>
+            <div class="rule-body">
+              <div class="rule-title">No async action handling</div>
+              <p class="rule-desc">
+                Reducers are synchronous. There is no middleware or effect
+                system for async operations like fetch calls.
+              </p>
+            </div>
+          </div>
+          <div class="rule">
+            <span class="rule-num">L-04</span>
+            <div class="rule-body">
+              <div class="rule-title">No enforced purity</div>
+              <p class="rule-desc">
+                Unlike Haskell or Elm, JS cannot enforce that reducers and view
+                functions are truly pure. Discipline is required from the
+                developer.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div class="footer-inner">
+          <div class="footer-left">
+            <strong>flow-arch</strong> — an open exploration.<br />
+            Not a framework. A way of thinking.
+          </div>
+          <div class="status-badge">
+            <span class="status-dot"></span>
+            actively exploring · v0.1
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Scroll reveal
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("visible");
+              observer.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.1 },
+      );
+
+      document
+        .querySelectorAll(".reveal")
+        .forEach((el) => observer.observe(el));
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flow-Arch Starter — Learn the Foundation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@600;700;800&family=Newsreader:ital,wght@0,300;0,400;1,300&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --surface: #111;
+        --border: #1e1e1e;
+        --accent: #c8f542;
+        --dim: #8faa2a;
+        --text: #e2e2dc;
+        --muted: #5a5a54;
+        --code-bg: #141414;
+        --fn-mono: "DM Mono", monospace;
+        --fn-disp: "Syne", sans-serif;
+        --fn-body: "Newsreader", serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--fn-body);
+        font-size: 17px;
+        line-height: 1.75;
+      }
+
+      ::selection {
+        background: var(--accent);
+        color: #000;
+      }
+
+      /* ── LAYOUT ── */
+      .wrap {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        min-height: 100vh;
+      }
+
+      /* ── SIDEBAR NAV ── */
+      aside {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        padding: 40px 24px;
+        background: var(--bg);
+      }
+
+      .sidebar-logo {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: capitalize;
+        margin-bottom: 36px;
+        display: block;
+        text-decoration: none;
+      }
+
+      .sidebar-label {
+        font-family: var(--fn-mono);
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        margin-top: 28px;
+      }
+
+      .sidebar-nav {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .sidebar-nav a {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: block;
+        transition: all 0.15s;
+        letter-spacing: 0.02em;
+      }
+
+      .sidebar-nav a:hover,
+      .sidebar-nav a.active {
+        color: var(--accent);
+        background: rgba(200, 245, 66, 0.06);
+      }
+
+      /* ── MAIN CONTENT ── */
+      main {
+        padding: 60px 64px 120px;
+        max-width: 780px;
+      }
+
+      /* ── CHAPTER HEADER ── */
+      .chapter {
+        padding-top: 80px;
+        margin-bottom: 48px;
+        border-top: 1px solid var(--border);
+      }
+
+      .chapter:first-of-type {
+        padding-top: 0;
+        border-top: none;
+      }
+
+      .ch-tag {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        color: var(--accent);
+        text-transform: capitalize;
+        margin-bottom: 14px;
+        display: block;
+      }
+
+      .ch-tag a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .ch-tag a:hover {
+        text-decoration: underline;
+      }
+
+      h1 {
+        font-family: var(--fn-disp);
+        font-size: clamp(32px, 5vw, 52px);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+        margin-bottom: 24px;
+      }
+
+      h1 em {
+        font-style: italic;
+        font-family: var(--fn-body);
+        font-weight: 300;
+        color: var(--accent);
+      }
+
+      h2 {
+        font-family: var(--fn-disp);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 18px;
+        line-height: 1.2;
+      }
+
+      h3 {
+        font-family: var(--fn-disp);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text);
+        margin: 28px 0 8px;
+      }
+
+      p {
+        color: #a8a8a2;
+        margin-bottom: 16px;
+      }
+      p strong {
+        color: var(--text);
+        font-weight: 400;
+      }
+      p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* ── LEAD TEXT ── */
+      .lead {
+        font-size: 19px;
+        color: #c0c0ba;
+        line-height: 1.65;
+        margin-bottom: 32px;
+        font-style: italic;
+      }
+
+      /* ── MDN LINK BADGE ── */
+      .mdn-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        padding: 7px 14px;
+        border-radius: 100px;
+        text-decoration: none;
+        transition: all 0.2s;
+        margin: 16px 0 28px;
+      }
+
+      .mdn-link:hover {
+        color: var(--accent);
+        border-color: var(--dim);
+        background: rgba(200, 245, 66, 0.04);
+      }
+
+      .mdn-link::before {
+        content: "↗";
+        font-size: 13px;
+      }
+
+      /* ── CODE BLOCK ── */
+      .code-block {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 24px 0;
+      }
+
+      .code-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .code-title {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+      }
+
+      .code-lang {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--dim);
+        letter-spacing: 0.05em;
+      }
+
+      pre {
+        padding: 22px;
+        overflow-x: auto;
+        font-family: var(--fn-mono);
+        font-size: 13px;
+        line-height: 1.85;
+        color: #c0c0b8;
+      }
+
+      /* syntax colors */
+      .k {
+        color: var(--accent);
+      } /* keyword */
+      .s {
+        color: #9aba3a;
+      } /* string */
+      .c {
+        color: #383830;
+      } /* comment */
+      .f {
+        color: #7ecfcf;
+      } /* function name */
+      .n {
+        color: #e0a86c;
+      } /* number */
+      .t {
+        color: #b0a0e0;
+      } /* tag */
+
+      /* ── CALLOUT BOX ── */
+      .callout {
+        border-left: 2px solid var(--accent);
+        background: rgba(200, 245, 66, 0.04);
+        border-radius: 0 6px 6px 0;
+        padding: 18px 22px;
+        margin: 24px 0;
+      }
+
+      .callout-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      .callout p {
+        font-size: 15px;
+        color: #b0b0aa;
+        margin: 0;
+      }
+
+      /* ── COMPARISON TABLE ── */
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 24px 0;
+      }
+
+      .compare-col {
+        background: var(--surface);
+        padding: 22px;
+      }
+
+      .compare-col-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      .compare-col-label.bad {
+        color: #cc4444;
+      }
+      .compare-col-label.good {
+        color: var(--accent);
+      }
+
+      .compare-col ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .compare-col ul li {
+        font-size: 13px;
+        color: var(--muted);
+        font-family: var(--fn-mono);
+        line-height: 1.5;
+      }
+
+      .compare-col.good-col ul li {
+        color: #a0b880;
+      }
+
+      /* ── BENEFIT CARDS ── */
+      .benefit-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 28px 0;
+      }
+
+      .benefit {
+        background: var(--surface);
+        padding: 26px;
+        transition: background 0.15s;
+      }
+
+      .benefit:hover {
+        background: #161616;
+      }
+
+      .benefit-icon {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.12em;
+        margin-bottom: 10px;
+        display: block;
+      }
+
+      .benefit h3 {
+        margin: 0 0 6px;
+        font-size: 15px;
+      }
+
+      .benefit p {
+        font-size: 13px;
+        margin: 0;
+        color: var(--muted);
+      }
+
+      /* ── INLINE CODE ── */
+      code {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        background: #1a1a1a;
+        border: 1px solid var(--border);
+        padding: 1px 6px;
+        border-radius: 3px;
+        color: var(--accent);
+      }
+
+      /* ── FLOW DIAGRAM (CSS only) ── */
+      .flow-diagram {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin: 32px 0;
+        flex-wrap: wrap;
+      }
+
+      .flow-node {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 12px 20px;
+        text-align: center;
+        min-width: 100px;
+      }
+
+      .flow-node-label {
+        font-family: var(--fn-mono);
+        font-size: 9px;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      .flow-node-name {
+        font-family: var(--fn-disp);
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text);
+      }
+
+      .flow-node.accent {
+        border-color: var(--dim);
+        background: rgba(200, 245, 66, 0.05);
+      }
+
+      .flow-node.accent .flow-node-name {
+        color: var(--accent);
+      }
+
+      .flow-arrow {
+        font-family: var(--fn-mono);
+        font-size: 14px;
+        color: var(--accent);
+        padding: 0 10px;
+      }
+
+      /* ── SUMMARY BOX ── */
+      .summary {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 28px;
+        margin: 32px 0;
+        background: var(--surface);
+      }
+
+      .summary-title {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+
+      .summary ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .summary ul li {
+        font-size: 14px;
+        color: var(--muted);
+        padding-left: 18px;
+        position: relative;
+      }
+
+      .summary ul li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        font-family: var(--fn-mono);
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 768px) {
+        .wrap {
+          grid-template-columns: 1fr;
+        }
+        aside {
+          display: none;
+        }
+        main {
+          padding: 40px 24px 80px;
+        }
+        .compare,
+        .benefit-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <!-- ═══════════════════════════════
+       SIDEBAR
+  ═══════════════════════════════ -->
+      <aside>
+        <a href="#intro" class="sidebar-logo">flow-vanilla/<br />starter</a>
+
+        <p class="sidebar-label">Foundations</p>
+        <ul class="sidebar-nav">
+          <li><a href="#intro">Introduction</a></li>
+          <li><a href="#webcomponent">Web Components</a></li>
+          <li><a href="#shadowdom">Shadow DOM</a></li>
+          <li><a href="#purefn">Pure Functions</a></li>
+          <li><a href="#declarative">Declarative Style</a></li>
+        </ul>
+
+        <p class="sidebar-label">Flow-Arch</p>
+        <ul class="sidebar-nav">
+          <li><a href="#combination">The Combination</a></li>
+          <li><a href="#loop">The Loop</a></li>
+          <li><a href="#benefits">Why It Matters</a></li>
+        </ul>
+      </aside>
+
+      <!-- ═══════════════════════════════
+       MAIN
+  ═══════════════════════════════ -->
+      <main>
+        <!-- ── INTRO ── -->
+        <section id="intro" class="chapter">
+          <span class="ch-tag">
+            <a href="../index.html">flow-vanilla</a>
+            / starter · 00</span
+          >
+          <h1>Learn the<br /><em>foundation</em><br />first.</h1>
+          <p class="lead">
+            Before writing a single Flow-Arch component, you need to understand
+            four concepts. This page is your starting point.
+          </p>
+          <p>
+            Each section explains one idea, shows you a minimal working code
+            example, and links directly to the MDN official documentation. Take
+            your time. These concepts compound.
+          </p>
+
+          <div class="summary">
+            <div class="summary-title">What you will learn</div>
+            <ul>
+              <li>What Web Components are and why they matter</li>
+              <li>What Shadow DOM does and why isolation is powerful</li>
+              <li>What a Pure Function is and why it eliminates bugs</li>
+              <li>What Declarative style means vs Imperative</li>
+              <li>Why Flow-Arch combines all four — and what you gain</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ── WEB COMPONENTS ── -->
+        <section id="webcomponent" class="chapter">
+          <span class="ch-tag">01 — Foundation</span>
+          <h2>Web Components</h2>
+
+          <p class="lead">
+            A Web Component is a custom HTML element you define yourself — built
+            directly into the browser, with no library required.
+          </p>
+
+          <p>
+            Instead of <code>&lt;div class="timer"&gt;</code> everywhere, you
+            write <code>&lt;flow-timer&gt;&lt;/flow-timer&gt;</code> — and the
+            browser knows exactly what to render because
+            <strong>you taught it</strong>.
+          </p>
+
+          <a
+            class="mdn-link"
+            href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components"
+            target="_blank"
+            rel="noopener"
+          >
+            MDN — Web Components
+          </a>
+
+          <!-- 加这个 -->
+          <a
+            class="mdn-link"
+            href="webComponent.html"
+            style="color: var(--accent); border-color: var(--dim)"
+          >
+            Write a Web Component
+          </a>
+
+          <div class="callout">
+            <div class="callout-label">Key Idea</div>
+            <p>
+              Web Components are not a framework. They are a browser standard.
+              They work in every modern browser, with zero dependencies.
+            </p>
+          </div>
+
+          <h3>Minimal Example</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">hello-world web component</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="c">// Step 1: Define a class that extends HTMLElement</span>
+<span class="k">class</span> <span class="f">HelloWorld</span> <span class="k">extends</span> HTMLElement {
+
+  <span class="c">// connectedCallback runs when the element</span>
+  <span class="c">// is inserted into the DOM</span>
+  <span class="f">connectedCallback</span>() {
+    <span class="k">this</span>.innerHTML = <span class="s">'&lt;p&gt;Hello, Web Component!&lt;/p&gt;'</span>
+  }
+}
+
+<span class="c">// Step 2: Register your custom tag name</span>
+<span class="c">// Tag names MUST contain a hyphen (-)</span>
+customElements.<span class="f">define</span>(<span class="s">'hello-world'</span>, HelloWorld)
+
+<span class="c">// Step 3: Use it in HTML like any normal tag</span>
+<span class="c">// &lt;hello-world&gt;&lt;/hello-world&gt;</span></pre>
+          </div>
+
+          <div class="compare">
+            <div class="compare-col">
+              <div class="compare-col-label bad">Without Web Components</div>
+              <ul>
+                <li>Requires React / Vue runtime</li>
+                <li>npm install + build step</li>
+                <li>Framework lock-in</li>
+                <li>Styles leak everywhere</li>
+                <li>Non-standard HTML</li>
+              </ul>
+            </div>
+            <div class="compare-col good-col">
+              <div class="compare-col-label good">With Web Components</div>
+              <ul>
+                <li>Zero dependencies</li>
+                <li>Runs directly in browser</li>
+                <li>Standard HTML element</li>
+                <li>Works with any framework</li>
+                <li>Built-in lifecycle hooks</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── SHADOW DOM ── -->
+        <section id="shadowdom" class="chapter">
+          <span class="ch-tag">02 — Foundation</span>
+          <h2>Shadow DOM</h2>
+
+          <p class="lead">
+            Shadow DOM is a browser feature that creates a private, isolated DOM
+            tree inside your Web Component. Styles and structure cannot leak in
+            or out.
+          </p>
+
+          <p>
+            Think of it as a <strong>sealed capsule</strong>. What happens
+            inside stays inside. External CSS cannot break your component. Your
+            component's CSS cannot break the rest of the page.
+          </p>
+
+          <a
+            class="mdn-link"
+            href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM"
+            target="_blank"
+            rel="noopener"
+          >
+            MDN — Using Shadow DOM
+          </a>
+          <a
+            class="mdn-link"
+            href="shadowDOM.html"
+            style="color: var(--accent); border-color: var(--dim)"
+          >
+            Shadow DOM step by step
+          </a>
+
+          <div class="callout">
+            <div class="callout-label">Key Idea</div>
+            <p>
+              Shadow DOM gives you
+              <strong style="color: var(--text)">true encapsulation</strong>.
+              Not naming conventions like BEM. Not scoped CSS from a build tool.
+              Real, browser-enforced isolation.
+            </p>
+          </div>
+
+          <h3>Minimal Example</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">shadow dom encapsulation</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="k">class</span> <span class="f">ShadowCard</span> <span class="k">extends</span> HTMLElement {
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()
+
+    <span class="c">// attachShadow creates the private DOM tree</span>
+    <span class="c">// mode: "open" means JS outside can still query it</span>
+    <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+
+    <span class="c">// Styles here ONLY affect this component</span>
+    <span class="c">// They will never leak to the outside page</span>
+    <span class="k">this</span>.shadowRoot.innerHTML = <span class="s">`
+      &lt;style&gt;
+        p { color: red; font-size: 24px; }
+      &lt;/style&gt;
+      &lt;p&gt;I am red and large&lt;/p&gt;
+    `</span>
+  }
+}
+
+customElements.<span class="f">define</span>(<span class="s">'shadow-card'</span>, ShadowCard)
+
+<span class="c">// Any &lt;p&gt; tags outside this component</span>
+<span class="c">// are completely unaffected by the style above</span></pre>
+          </div>
+
+          <div class="compare">
+            <div class="compare-col">
+              <div class="compare-col-label bad">Without Shadow DOM</div>
+              <ul>
+                <li>CSS leaks between components</li>
+                <li>Naming collisions (.btn, .card)</li>
+                <li>Global styles override yours</li>
+                <li>Need BEM or CSS Modules</li>
+                <li>Unpredictable at scale</li>
+              </ul>
+            </div>
+            <div class="compare-col good-col">
+              <div class="compare-col-label good">With Shadow DOM</div>
+              <ul>
+                <li>Styles are truly isolated</li>
+                <li>No naming conventions needed</li>
+                <li>Component is self-contained</li>
+                <li>Predictable at any scale</li>
+                <li>Browser-enforced, not a hack</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── PURE FUNCTIONS ── -->
+        <section id="purefn" class="chapter">
+          <span class="ch-tag">03 — Foundation</span>
+          <h2>Pure Functions</h2>
+
+          <p class="lead">
+            A pure function has two rules: same input always gives same output,
+            and it never touches anything outside itself.
+          </p>
+
+          <p>
+            That's it. Two rules. But following them eliminates an entire class
+            of bugs — the hardest ones to find:
+            <strong>state bugs, timing bugs, side-effect bugs</strong>.
+          </p>
+
+          <div class="callout">
+            <div class="callout-label">The Two Rules</div>
+            <p>
+              1. <strong style="color: var(--text)">Deterministic</strong> —
+              same input → same output, always, forever.<br />
+              2. <strong style="color: var(--text)">No side effects</strong> —
+              does not read or write anything outside its parameters.
+            </p>
+          </div>
+
+          <h3>Pure vs Impure — Side by Side</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">pure vs impure function</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="c">// ✗ IMPURE — depends on external variable</span>
+<span class="c">// If TAX_RATE changes, this function changes too</span>
+<span class="k">const</span> TAX_RATE = <span class="n">0.1</span>
+<span class="k">const</span> <span class="f">calculateTaxImpure</span> = (price) => price * TAX_RATE
+
+
+<span class="c">// ✓ PURE — all inputs come through parameters</span>
+<span class="c">// Same input → same output, always</span>
+<span class="k">const</span> <span class="f">calculateTax</span> = (price, rate) => price * rate
+
+
+<span class="c">// ✗ IMPURE — modifies the original array (mutation)</span>
+<span class="k">const</span> <span class="f">addItemImpure</span> = (cart, item) => {
+  cart.<span class="f">push</span>(item)   <span class="c">// ← changes the outside world</span>
+  <span class="k">return</span> cart
+}
+
+
+<span class="c">// ✓ PURE — returns a new array, original untouched</span>
+<span class="k">const</span> <span class="f">addItem</span> = (cart, item) => [...cart, item]
+
+
+<span class="c">// ✓ PURE REDUCER — the heart of Flow-Arch</span>
+<span class="c">// Takes current state + action, returns NEW state</span>
+<span class="c">// Never modifies state directly</span>
+<span class="k">const</span> <span class="f">reducer</span> = (state, action) => {
+  <span class="k">switch</span> (action.type) {
+    <span class="k">case</span> <span class="s">"INCREMENT"</span>:
+      <span class="k">return</span> { ...state, count: state.count + <span class="n">1</span> }
+    <span class="k">default</span>:
+      <span class="k">return</span> state
+  }
+}</pre>
+          </div>
+
+          <div class="compare">
+            <div class="compare-col">
+              <div class="compare-col-label bad">Impure Functions cause</div>
+              <ul>
+                <li>Bugs that depend on call order</li>
+                <li>Shared state corruption</li>
+                <li>Impossible to unit test cleanly</li>
+                <li>Hard to reason about</li>
+                <li>Hidden dependencies</li>
+              </ul>
+            </div>
+            <div class="compare-col good-col">
+              <div class="compare-col-label good">Pure Functions give you</div>
+              <ul>
+                <li>Predictable, testable logic</li>
+                <li>No hidden state bugs</li>
+                <li>Safe to call anywhere, anytime</li>
+                <li>Easy to read and reason about</li>
+                <li>Composable and reusable</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── DECLARATIVE ── -->
+        <section id="declarative" class="chapter">
+          <span class="ch-tag">04 — Foundation</span>
+          <h2>Declarative Style</h2>
+
+          <p class="lead">
+            Declarative code describes <em>what</em> you want. Imperative code
+            describes <em>how</em> to get there step by step.
+          </p>
+
+          <p>
+            Declarative code is shorter, easier to read, and harder to get wrong
+            — because you are expressing intent, not instructions.
+          </p>
+
+          <div class="callout">
+            <div class="callout-label">One Sentence</div>
+            <p>
+              <strong style="color: var(--text)">Imperative:</strong> "Go to the
+              kitchen, open the fridge, take the milk, pour it."<br />
+              <strong style="color: var(--text)">Declarative:</strong> "I want a
+              glass of milk."
+            </p>
+          </div>
+
+          <h3>Same Task, Two Styles</h3>
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title"
+                >filter even numbers — imperative vs declarative</span
+              >
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="k">const</span> numbers = [<span class="n">1</span>, <span class="n">2</span>, <span class="n">3</span>, <span class="n">4</span>, <span class="n">5</span>, <span class="n">6</span>]
+
+
+<span class="c">// ✗ IMPERATIVE — tells the computer HOW to do it</span>
+<span class="c">// You manage the loop, the index, the result array</span>
+<span class="k">const</span> evensImperative = []
+<span class="k">for</span> (<span class="k">let</span> i = <span class="n">0</span>; i &lt; numbers.length; i++) {
+  <span class="k">if</span> (numbers[i] % <span class="n">2</span> === <span class="n">0</span>) {
+    evensImperative.<span class="f">push</span>(numbers[i])
+  }
+}
+
+
+<span class="c">// ✓ DECLARATIVE — tells the computer WHAT you want</span>
+<span class="c">// No index, no mutation, reads like a sentence</span>
+<span class="k">const</span> evensDeclarative = numbers.<span class="f">filter</span>(n => n % <span class="n">2</span> === <span class="n">0</span>)
+
+
+<span class="c">// ✓ DECLARATIVE VIEW — the Flow-Arch way</span>
+<span class="c">// Describe what the UI should look like</span>
+<span class="c">// given the current state. Nothing more.</span>
+<span class="k">const</span> <span class="f">view</span> = (state) => <span class="s">`
+  &lt;div class="count"&gt;${state.count}&lt;/div&gt;
+  &lt;button data-action="INCREMENT"&gt;+&lt;/button&gt;
+`</span>
+<span class="c">// view() does not DO anything.</span>
+<span class="c">// It just DESCRIBES what to show.</span></pre>
+          </div>
+        </section>
+
+        <!-- ── THE COMBINATION ── -->
+        <section id="combination" class="chapter">
+          <span class="ch-tag">05 — Flow-Arch</span>
+          <h2>The Combination</h2>
+
+          <p class="lead">
+            None of these four concepts is new. What Flow-Arch proposes is
+            combining all of them together — as a discipline, in vanilla JS,
+            with zero dependencies.
+          </p>
+
+          <p>
+            Each concept solves a different problem. Together, they cover nearly
+            every common source of frontend bugs and complexity.
+          </p>
+
+          <div class="compare">
+            <div class="compare-col">
+              <div class="compare-col-label bad">Problem</div>
+              <ul>
+                <li>CSS bleeding between components</li>
+                <li>State bugs from mutation</li>
+                <li>Logic tangled with DOM code</li>
+                <li>Hard to read imperative loops</li>
+                <li>Heavy framework dependency</li>
+              </ul>
+            </div>
+            <div class="compare-col good-col">
+              <div class="compare-col-label good">Flow-Arch Solution</div>
+              <ul>
+                <li>Shadow DOM isolation</li>
+                <li>Pure functions + immutability</li>
+                <li>Web Component boundary</li>
+                <li>Declarative view functions</li>
+                <li>Zero dependencies, native APIs</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── THE LOOP ── -->
+        <section id="loop" class="chapter">
+          <span class="ch-tag">06 — Flow-Arch</span>
+          <h2>The Loop</h2>
+
+          <p>
+            Every Flow-Arch component runs the same loop. Learn this loop once,
+            understand every component forever.
+          </p>
+
+          <div class="flow-diagram">
+            <div class="flow-node accent">
+              <div class="flow-node-label">Start</div>
+              <div class="flow-node-name">State</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">
+              <div class="flow-node-label">Pure fn</div>
+              <div class="flow-node-name">View</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">
+              <div class="flow-node-label">User</div>
+              <div class="flow-node-name">Action</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node">
+              <div class="flow-node-label">Pure fn</div>
+              <div class="flow-node-name">Reducer</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-node accent">
+              <div class="flow-node-label">New</div>
+              <div class="flow-node-name">State</div>
+            </div>
+          </div>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">the complete loop — annotated</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="c">// ─── STATE ────────────────────────────────────────────
+// Plain object. Single source of truth.
+// Never modified directly.</span>
+<span class="k">const</span> <span class="f">createInitialState</span> = () => ({ count: <span class="n">0</span> })
+
+
+<span class="c">// ─── REDUCER (Pure Function) ──────────────────────────
+// Old state + action → new state
+// This is where ALL logic lives.</span>
+<span class="k">const</span> <span class="f">reducer</span> = (state, action) => {
+  <span class="k">switch</span> (action.type) {
+    <span class="k">case</span> <span class="s">"INCREMENT"</span>: <span class="k">return</span> { ...state, count: state.count + <span class="n">1</span> }
+    <span class="k">case</span> <span class="s">"DECREMENT"</span>: <span class="k">return</span> { ...state, count: state.count - <span class="n">1</span> }
+    <span class="k">default</span>:         <span class="k">return</span> state
+  }
+}
+
+
+<span class="c">// ─── VIEW (Pure Function) ─────────────────────────────
+// State in → HTML string out.
+// No logic. No side effects. Just a description.</span>
+<span class="k">const</span> <span class="f">view</span> = (state) => <span class="s">`
+  &lt;div class="count"&gt;${state.count}&lt;/div&gt;
+  &lt;button data-action="DECREMENT"&gt;−&lt;/button&gt;
+  &lt;button data-action="INCREMENT"&gt;+&lt;/button&gt;
+`</span>
+
+
+<span class="c">// ─── WEB COMPONENT (Side-effect boundary) ────────────
+// The only place where DOM and events live.
+// Connects the pure world to the real browser.</span>
+<span class="k">class</span> <span class="f">FlowCounter</span> <span class="k">extends</span> HTMLElement {
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()
+    <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+    <span class="k">this</span>.state = <span class="f">createInitialState</span>()
+
+    <span class="c">// dispatch = the only way to change state</span>
+    <span class="k">this</span>.dispatch = (action) => {
+      <span class="k">this</span>.state = <span class="f">reducer</span>(<span class="k">this</span>.state, action)
+      <span class="k">this</span>.<span class="f">render</span>()
+    }
+  }
+
+  <span class="f">connectedCallback</span>() {
+    <span class="k">this</span>.<span class="f">render</span>()
+    <span class="k">this</span>.shadowRoot.<span class="f">addEventListener</span>(<span class="s">"click"</span>, (e) => {
+      <span class="k">const</span> type = e.target.dataset.action
+      <span class="k">if</span> (type) <span class="k">this</span>.<span class="f">dispatch</span>({ type })
+    })
+  }
+
+  <span class="f">render</span>() {
+    <span class="k">this</span>.shadowRoot.innerHTML = <span class="f">view</span>(<span class="k">this</span>.state)
+  }
+}
+
+customElements.<span class="f">define</span>(<span class="s">"flow-counter"</span>, FlowCounter)</pre>
+          </div>
+        </section>
+
+        <!-- ── BENEFITS ── -->
+        <section id="benefits" class="chapter">
+          <span class="ch-tag">07 — Flow-Arch</span>
+          <h2>Why It Matters</h2>
+
+          <p>
+            Combining these four ideas into one discipline gives you properties
+            that no single concept provides alone.
+          </p>
+
+          <div class="benefit-grid">
+            <div class="benefit">
+              <span class="benefit-icon">BENEFIT_01</span>
+              <h3>Predictable by Design</h3>
+              <p>
+                Pure reducers mean the same action always produces the same
+                result. No surprises. No race conditions.
+              </p>
+            </div>
+            <div class="benefit">
+              <span class="benefit-icon">BENEFIT_02</span>
+              <h3>Zero Framework Risk</h3>
+              <p>
+                Web Components are a browser standard. Your code will still run
+                in 10 years. No breaking changes from a framework update.
+              </p>
+            </div>
+            <div class="benefit">
+              <span class="benefit-icon">BENEFIT_03</span>
+              <h3>Trivially Testable</h3>
+              <p>
+                Pure functions need no setup, no mocks, no DOM. Test your
+                reducer and view with simple input/output assertions.
+              </p>
+            </div>
+            <div class="benefit">
+              <span class="benefit-icon">BENEFIT_04</span>
+              <h3>True Encapsulation</h3>
+              <p>
+                Shadow DOM ensures your component is a sealed unit. Styles and
+                structure cannot be broken by the outside world.
+              </p>
+            </div>
+            <div class="benefit">
+              <span class="benefit-icon">BENEFIT_05</span>
+              <h3>Readable at a Glance</h3>
+              <p>
+                Declarative view functions describe what the UI looks like. You
+                read them like a spec, not an instruction manual.
+              </p>
+            </div>
+            <div class="benefit">
+              <span class="benefit-icon">BENEFIT_06</span>
+              <h3>Side Effects Contained</h3>
+              <p>
+                All DOM manipulation and async work lives in the Web Component
+                shell. The rest of your code stays pure and clean.
+              </p>
+            </div>
+          </div>
+
+          <div class="callout" style="margin-top: 40px">
+            <div class="callout-label">The Core Claim</div>
+            <p>
+              Flow-Arch does not claim to be the best way to build UIs. It
+              claims to be the most
+              <strong style="color: var(--text)">honest</strong> way — using
+              only what the browser already gives you, disciplined by ideas
+              borrowed from functional programming. <br /><br />
+              Everything here is a proposal. An exploration. Not a product.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      // Active nav highlight on scroll
+      const sections = document.querySelectorAll("section[id]");
+      const links = document.querySelectorAll(".sidebar-nav a");
+
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              links.forEach((l) => l.classList.remove("active"));
+              const active = document.querySelector(
+                `.sidebar-nav a[href="#${e.target.id}"]`,
+              );
+              if (active) active.classList.add("active");
+            }
+          });
+        },
+        { threshold: 0.4 },
+      );
+
+      sections.forEach((s) => obs.observe(s));
+    </script>
+  </body>
+</html>

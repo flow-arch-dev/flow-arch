@@ -1,0 +1,1702 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shadow DOM — Step by Step · Flow-Arch</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@600;700;800&family=Newsreader:ital,wght@0,300;0,400;1,300&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --surface: #111;
+        --border: #1e1e1e;
+        --accent: #c8f542;
+        --dim: #8faa2a;
+        --text: #e2e2dc;
+        --muted: #5a5a54;
+        --code-bg: #141414;
+        --fn-mono: "DM Mono", monospace;
+        --fn-disp: "Syne", sans-serif;
+        --fn-body: "Newsreader", serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--fn-body);
+        font-size: 17px;
+        line-height: 1.75;
+      }
+
+      ::selection {
+        background: var(--accent);
+        color: #000;
+      }
+
+      .wrap {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        min-height: 100vh;
+      }
+
+      /* ── SIDEBAR ── */
+      aside {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        border-right: 1px solid var(--border);
+        padding: 40px 24px;
+        background: var(--bg);
+      }
+
+      .sidebar-logo {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: capitalize;
+        margin-bottom: 8px;
+        display: block;
+        text-decoration: none;
+      }
+
+      .sidebar-back {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: var(--muted);
+        text-decoration: none;
+        display: block;
+        margin-bottom: 32px;
+        transition: color 0.15s;
+      }
+
+      .sidebar-back:hover {
+        color: var(--accent);
+      }
+
+      .sidebar-label {
+        font-family: var(--fn-mono);
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        margin-top: 28px;
+      }
+
+      .sidebar-nav {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .sidebar-nav a {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: block;
+        transition: all 0.15s;
+      }
+
+      .sidebar-nav a:hover,
+      .sidebar-nav a.active {
+        color: var(--accent);
+        background: rgba(200, 245, 66, 0.06);
+      }
+
+      /* ── MAIN ── */
+      main {
+        padding: 60px 64px 120px;
+        max-width: 780px;
+      }
+
+      .breadcrumb {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 40px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .breadcrumb a {
+        color: var(--accent);
+        text-decoration: none;
+        text-transform: capitalize;
+      }
+
+      .breadcrumb a:hover {
+        text-decoration: underline;
+      }
+      .breadcrumb span {
+        color: var(--muted);
+      }
+
+      /* ── STEPS ── */
+      .step {
+        padding-top: 72px;
+        border-top: 1px solid var(--border);
+      }
+
+      .step:first-of-type {
+        border-top: none;
+        padding-top: 0;
+      }
+
+      .step-tag {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .step-num {
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        background: rgba(200, 245, 66, 0.1);
+        color: var(--accent);
+        border: 1px solid var(--dim);
+        padding: 3px 10px;
+        border-radius: 100px;
+        letter-spacing: 0.1em;
+      }
+
+      .step-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+
+      .step-label a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      .step-label a:hover {
+        text-decoration: underline;
+      }
+
+      h1 {
+        font-family: var(--fn-disp);
+        font-size: clamp(36px, 5vw, 56px);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+        margin-bottom: 20px;
+      }
+
+      h1 em {
+        font-style: italic;
+        font-family: var(--fn-body);
+        font-weight: 300;
+        color: var(--accent);
+      }
+
+      h2 {
+        font-family: var(--fn-disp);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 16px;
+      }
+
+      h3 {
+        font-family: var(--fn-disp);
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+        margin: 24px 0 8px;
+      }
+
+      p {
+        color: #a8a8a2;
+        margin-bottom: 14px;
+      }
+      p strong {
+        color: var(--text);
+        font-weight: 400;
+      }
+      p:last-child {
+        margin-bottom: 0;
+      }
+
+      .lead {
+        font-size: 19px;
+        color: #c0c0ba;
+        font-style: italic;
+        margin-bottom: 28px;
+        line-height: 1.6;
+      }
+
+      /* ── CALLOUT ── */
+      .callout {
+        border-left: 2px solid var(--accent);
+        background: rgba(200, 245, 66, 0.04);
+        border-radius: 0 6px 6px 0;
+        padding: 16px 20px;
+        margin: 20px 0;
+      }
+
+      .callout-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      .callout p {
+        font-size: 14px;
+        color: #a0a09a;
+        margin: 0;
+      }
+
+      .callout.warn {
+        border-left-color: #e0a86c;
+        background: rgba(224, 168, 108, 0.04);
+      }
+
+      .callout.warn .callout-label {
+        color: #e0a86c;
+      }
+
+      /* ── CODE BLOCK ── */
+      .code-block {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+
+      .code-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .code-title {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+      }
+
+      .code-lang {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--dim);
+      }
+
+      pre {
+        padding: 22px;
+        overflow-x: auto;
+        font-family: var(--fn-mono);
+        font-size: 13px;
+        line-height: 1.85;
+        color: #c0c0b8;
+      }
+
+      .k {
+        color: var(--accent);
+      }
+      .s {
+        color: #9aba3a;
+      }
+      .c {
+        color: #383830;
+      }
+      .f {
+        color: #7ecfcf;
+      }
+      .n {
+        color: #e0a86c;
+      }
+      .t {
+        color: #b0a0e0;
+      }
+
+      /* ── LIVE DEMO ── */
+      .demo-box {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+
+      .demo-box-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      .demo-box-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--accent);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .demo-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      .demo-body {
+        padding: 32px;
+        background: #0d0d0d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        min-height: 100px;
+        flex-wrap: wrap;
+      }
+
+      /* ── EXPLAIN BOX ── */
+      .explain {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin: 20px 0;
+      }
+
+      .explain-title {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      .explain ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .explain ul li {
+        font-size: 14px;
+        color: var(--muted);
+        padding-left: 20px;
+        position: relative;
+        line-height: 1.5;
+      }
+
+      .explain ul li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        font-family: var(--fn-mono);
+        font-size: 12px;
+      }
+
+      .explain ul li strong {
+        color: var(--text);
+        font-weight: 400;
+      }
+
+      /* ── COMPARE GRID ── */
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+
+      .compare-col {
+        background: var(--surface);
+        padding: 20px;
+      }
+
+      .compare-col-label {
+        font-family: var(--fn-mono);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      .compare-col-label.bad {
+        color: #cc4444;
+      }
+      .compare-col-label.good {
+        color: var(--accent);
+      }
+
+      .compare-col ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .compare-col ul li {
+        font-size: 13px;
+        color: var(--muted);
+        font-family: var(--fn-mono);
+        line-height: 1.5;
+      }
+
+      .compare-col.good-col ul li {
+        color: #a0b880;
+      }
+
+      /* ── MDN LINK ── */
+      .mdn-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--fn-mono);
+        font-size: 11px;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        padding: 7px 14px;
+        border-radius: 100px;
+        text-decoration: none;
+        transition: all 0.2s;
+        margin: 16px 0 28px;
+      }
+
+      .mdn-link:hover {
+        color: var(--accent);
+        border-color: var(--dim);
+        background: rgba(200, 245, 66, 0.04);
+      }
+
+      .mdn-link::before {
+        content: "↗";
+        font-size: 13px;
+      }
+
+      /* ── NEXT BANNER ── */
+      .next-banner {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px 28px;
+        margin-top: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        background: var(--surface);
+      }
+
+      .next-banner-text {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .next-banner-text strong {
+        display: block;
+        color: var(--text);
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .btn {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #000;
+        font-weight: 500;
+      }
+
+      .btn-primary:hover {
+        background: #d9ff55;
+      }
+
+      code {
+        font-family: var(--fn-mono);
+        font-size: 12px;
+        background: #1a1a1a;
+        border: 1px solid var(--border);
+        padding: 1px 6px;
+        border-radius: 3px;
+        color: var(--accent);
+      }
+
+      /* ── DIAGRAM ── */
+      .diagram {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 28px;
+        margin: 20px 0;
+        background: var(--surface);
+        font-family: var(--fn-mono);
+        font-size: 13px;
+        line-height: 2;
+        color: var(--muted);
+      }
+
+      .diagram .hi {
+        color: var(--accent);
+      }
+      .diagram .dim {
+        color: #2a2a24;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .wrap {
+          grid-template-columns: 1fr;
+        }
+        aside {
+          display: none;
+        }
+        main {
+          padding: 32px 24px 80px;
+        }
+        .compare {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <!-- ═══ SIDEBAR ═══ -->
+      <aside>
+        <a href="../index.html" class="sidebar-logo">flow-vanilla/</a>
+        <a href="index.html" class="sidebar-back">← back to starter</a>
+
+        <p class="sidebar-label">Steps</p>
+        <ul class="sidebar-nav">
+          <li><a href="#intro">What is Shadow DOM?</a></li>
+          <li><a href="#step1">Step 1 — The Problem</a></li>
+          <li><a href="#step2">Step 2 — attachShadow</a></li>
+          <li><a href="#step3">Step 3 — Writing to shadowRoot</a></li>
+          <li><a href="#step4">Step 4 — Style Isolation</a></li>
+          <li><a href="#step5">Step 5 — :host selector</a></li>
+          <li><a href="#step6">Step 6 — CSS Custom Properties</a></li>
+          <li><a href="#step7">Step 7 — Slots</a></li>
+          <li><a href="#full">Full Example</a></li>
+        </ul>
+      </aside>
+
+      <!-- ═══ MAIN ═══ -->
+      <main>
+        <!-- BREADCRUMB -->
+        <div class="breadcrumb">
+          <a href="../index.html">flow-vanilla</a>
+          <span>/</span>
+          <a href="index.html">starter</a>
+          <span>/</span>
+          <span>shadow dom</span>
+        </div>
+
+        <!-- INTRO -->
+        <section id="intro" class="step">
+          <div class="step-tag">
+            <!-- <span class="step-num">TUTORIAL</span> -->
+            <span class="step-label">
+              <a href="./index.html#shadowdom">← Shadow DOM </a>· From
+              Zero</span
+            >
+          </div>
+
+          <h1>Isolate with<br /><em>Shadow DOM.</em></h1>
+
+          <p class="lead">
+            Shadow DOM gives your component a private, sealed DOM tree. Styles
+            inside cannot leak out. Styles outside cannot leak in. No
+            conventions needed. No build tools. Just the browser.
+          </p>
+
+          <p>
+            This tutorial builds up Shadow DOM knowledge
+            <strong>one concept at a time</strong>, starting from the problem it
+            solves. Every step has a live demo you can see immediately.
+          </p>
+
+          <a
+            class="mdn-link"
+            href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM"
+            target="_blank"
+            rel="noopener"
+          >
+            MDN — Using Shadow DOM · Official Documentation
+          </a>
+
+          <div class="callout">
+            <div class="callout-label">Prerequisite</div>
+            <p>
+              This tutorial assumes you know the basics of Web Components. If
+              you haven't already, read the
+              <a
+                href="webComponent.html"
+                style="color: var(--accent); text-decoration: none"
+                >Web Components tutorial</a
+              >
+              first.
+            </p>
+          </div>
+        </section>
+
+        <!-- STEP 1 — THE PROBLEM -->
+        <section id="step1" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 01</span>
+            <span class="step-label">The problem Shadow DOM solves</span>
+          </div>
+          <h2>The Problem</h2>
+
+          <p>
+            Without Shadow DOM, your component's styles live in the global
+            stylesheet. They can collide with other styles on the page —
+            silently, unpredictably.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">the collision problem</span>
+              <span class="code-lang">CSS</span>
+            </div>
+            <pre><span class="c">/* Global stylesheet */</span>
+p { color: red; font-size: 24px; }
+
+<span class="c">/* Your component writes a &lt;p&gt; tag */</span>
+<span class="c">/* It will be red and 24px — whether you want it or not */</span>
+<span class="c">/* You have no control */</span></pre>
+          </div>
+
+          <!-- LIVE DEMO: show collision -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label">Live — the collision</span>
+              <span class="demo-dot"></span>
+            </div>
+            <div
+              class="demo-body"
+              style="flex-direction: column; align-items: flex-start; gap: 12px"
+            >
+              <p
+                style="color: #cc4444; font-size: 20px; font-family: monospace"
+              >
+                ← This &lt;p&gt; is styled by the page
+              </p>
+              <no-shadow-demo></no-shadow-demo>
+            </div>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">What's happening</div>
+            <ul>
+              <li>The component above renders a <code>&lt;p&gt;</code> tag</li>
+              <li>
+                <strong>The page's CSS is bleeding into the component</strong>
+                and styling it
+              </li>
+              <li>This is the problem Shadow DOM exists to prevent</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- STEP 2 — attachShadow -->
+        <section id="step2" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 02</span>
+            <span class="step-label">Create the private tree</span>
+          </div>
+          <h2>attachShadow()</h2>
+
+          <p>
+            <code>attachShadow()</code> creates a separate, private DOM tree
+            attached to your element. It must be called in the
+            <code>constructor()</code>, before the element enters the page.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">attaching a shadow root</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="k">class</span> <span class="f">MyCard</span> <span class="k">extends</span> HTMLElement {
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()  <span class="c">// always first</span>
+
+    <span class="c">// Create the shadow root</span>
+    <span class="c">// Returns a ShadowRoot object</span>
+    <span class="k">const</span> shadow = <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+
+    <span class="c">// 'open'  → JS outside can read this.shadowRoot</span>
+    <span class="c">// 'closed'→ this.shadowRoot returns null from outside</span>
+    <span class="c">//           (rarely used — adds friction, not real security)</span>
+  }
+}</pre>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">What attachShadow() does</div>
+            <ul>
+              <li>
+                Creates a <strong>new, isolated DOM tree</strong> inside your
+                element
+              </li>
+              <li>
+                Returns a <code>ShadowRoot</code> — accessible via
+                <code>this.shadowRoot</code>
+              </li>
+              <li>
+                <strong>mode: "open"</strong> is almost always what you want
+              </li>
+              <li>
+                Can only be called <strong>once per element</strong> — calling
+                twice throws an error
+              </li>
+            </ul>
+          </div>
+
+          <div class="diagram">
+            <span>document</span><br />
+            <span> └─ &lt;body&gt;</span><br />
+            <span>
+              └─ <span class="hi">&lt;my-card&gt;</span> ← your element</span
+            ><br />
+            <span>
+              └─ <span class="hi">#shadow-root</span> ← private tree starts
+              here</span
+            ><br />
+            <span> └─ &lt;div&gt; ← lives inside the shadow</span><br />
+            <span> └─ &lt;p&gt; &lt;img&gt;</span>
+          </div>
+        </section>
+
+        <!-- STEP 3 — Writing to shadowRoot -->
+        <section id="step3" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 03</span>
+            <span class="step-label">Render inside the shadow</span>
+          </div>
+          <h2>Writing to shadowRoot</h2>
+
+          <p>
+            Instead of writing to <code>this.innerHTML</code> (which puts
+            content in the regular DOM), write to
+            <code>this.shadowRoot.innerHTML</code>. Everything inside is now
+            protected.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">this vs this.shadowRoot</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="k">class</span> <span class="f">MyCard</span> <span class="k">extends</span> HTMLElement {
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()
+    <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+  }
+
+  <span class="f">connectedCallback</span>() {
+
+    <span class="c">// ✗ this.innerHTML — writes to the LIGHT DOM</span>
+    <span class="c">//   exposed to the page, styles can bleed in</span>
+    <span class="c">// this.innerHTML = '&lt;p&gt;Hello&lt;/p&gt;'</span>
+
+    <span class="c">// ✓ this.shadowRoot.innerHTML — writes to the SHADOW DOM</span>
+    <span class="c">//   completely isolated from the page</span>
+    <span class="k">this</span>.shadowRoot.innerHTML = <span class="s">`
+      &lt;p&gt;Hello from the Shadow!&lt;/p&gt;
+    `</span>
+  }
+}
+
+customElements.<span class="f">define</span>(<span class="s">"my-card"</span>, MyCard)</pre>
+          </div>
+
+          <!-- LIVE DEMO -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label"
+                >Live — shadow root is protected</span
+              >
+              <span class="demo-dot"></span>
+            </div>
+            <div
+              class="demo-body"
+              style="flex-direction: column; align-items: flex-start; gap: 12px"
+            >
+              <p
+                style="color: #cc4444; font-size: 20px; font-family: monospace"
+              >
+                ← Regular &lt;p&gt; — affected by page CSS
+              </p>
+              <shadow-demo-3></shadow-demo-3>
+            </div>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">What just happened</div>
+            <ul>
+              <li>
+                The component renders a <code>&lt;p&gt;</code> inside its Shadow
+                DOM
+              </li>
+              <li>
+                <strong>The page's red CSS does not affect it</strong> — it is
+                isolated
+              </li>
+              <li>Light DOM = the regular DOM, visible to page styles</li>
+              <li>Shadow DOM = the private tree, invisible to page styles</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- STEP 4 — Style Isolation -->
+        <section id="step4" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 04</span>
+            <span class="step-label">Styles that cannot escape</span>
+          </div>
+          <h2>Style Isolation</h2>
+
+          <p>
+            A <code>&lt;style&gt;</code> tag inside Shadow DOM
+            <strong>only affects that component</strong>. It cannot reach
+            outside. The page cannot reach in. This is true browser-enforced
+            encapsulation.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">styles are scoped automatically</span>
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="k">class</span> <span class="f">StyledCard</span> <span class="k">extends</span> HTMLElement {
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()
+    <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+  }
+
+  <span class="f">connectedCallback</span>() {
+    <span class="k">this</span>.shadowRoot.innerHTML = <span class="s">`
+      &lt;style&gt;
+        p {
+          color: #c8f542;
+          font-size: 15px;
+          font-family: monospace;
+          background: #111;
+          padding: 12px 16px;
+          border-radius: 6px;
+          border-left: 2px solid #c8f542;
+        }
+      &lt;/style&gt;
+
+      &lt;p&gt;I am styled by Shadow DOM.&lt;/p&gt;
+      &lt;p&gt;These styles cannot escape this component.&lt;/p&gt;
+    `</span>
+  }
+}
+
+customElements.<span class="f">define</span>(<span class="s">"styled-card"</span>, StyledCard)
+
+<span class="c">// Any &lt;p&gt; tags OUTSIDE this component</span>
+<span class="c">// are completely unaffected by the styles above</span></pre>
+          </div>
+
+          <!-- LIVE DEMO -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label"
+                >Live — two components, zero collision</span
+              >
+              <span class="demo-dot"></span>
+            </div>
+            <div
+              class="demo-body"
+              style="flex-direction: column; gap: 16px; align-items: stretch"
+            >
+              <shadow-demo-4a></shadow-demo-4a>
+              <shadow-demo-4b></shadow-demo-4b>
+            </div>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">What just happened</div>
+            <ul>
+              <li>
+                Both components define a <code>p { color: ... }</code> rule
+              </li>
+              <li>
+                <strong>Neither rule affects the other</strong> — complete
+                isolation
+              </li>
+              <li>
+                No BEM class names. No CSS Modules. No build step. Just Shadow
+                DOM.
+              </li>
+            </ul>
+          </div>
+
+          <div class="compare">
+            <div class="compare-col">
+              <div class="compare-col-label bad">Without Shadow DOM</div>
+              <ul>
+                <li>CSS leaks between components</li>
+                <li>Need BEM / CSS Modules</li>
+                <li>Global resets break things</li>
+                <li>Order of styles matters</li>
+                <li>Unpredictable at scale</li>
+              </ul>
+            </div>
+            <div class="compare-col good-col">
+              <div class="compare-col-label good">With Shadow DOM</div>
+              <ul>
+                <li>Styles are truly scoped</li>
+                <li>No naming conventions needed</li>
+                <li>Global CSS cannot interfere</li>
+                <li>Order does not matter</li>
+                <li>Predictable always</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 5 — :host -->
+        <section id="step5" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 05</span>
+            <span class="step-label">Style the element itself</span>
+          </div>
+          <h2>The :host Selector</h2>
+
+          <p>
+            Inside Shadow DOM, <code>:host</code> refers to the custom element
+            itself — the <code>&lt;my-card&gt;</code> tag in the page. Use it to
+            set display, layout, sizing, and other outer styles.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title"
+                >:host — styling the element from inside</span
+              >
+              <span class="code-lang">CSS</span>
+            </div>
+            <pre><span class="t">&lt;style&gt;</span>
+
+  <span class="c">/* :host = the &lt;my-card&gt; element itself */</span>
+  :host {
+    display: block;          <span class="c">/* custom elements are inline by default! */</span>
+    width: 240px;
+    border: 1px solid #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  <span class="c">/* :host() with a selector — apply when condition is true */</span>
+  :host([theme="dark"]) {
+    background: #0a0a0a;
+    color: #e2e2dc;
+  }
+
+  :host([theme="light"]) {
+    background: #f5f5f5;
+    color: #111;
+  }
+
+  <span class="c">/* :host-context() — style based on parent */</span>
+  :host-context(.sidebar) {
+    width: 100%;             <span class="c">/* full width when inside .sidebar */</span>
+  }
+
+<span class="t">&lt;/style&gt;</span></pre>
+          </div>
+
+          <!-- LIVE DEMO -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label">Live — :host in action</span>
+              <span class="demo-dot"></span>
+            </div>
+            <div
+              class="demo-body"
+              style="gap: 16px; align-items: flex-start; flex-wrap: wrap"
+            >
+              <host-demo theme="dark"></host-demo>
+              <host-demo theme="light"></host-demo>
+            </div>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">Key :host rules</div>
+            <ul>
+              <li>
+                <strong>Custom elements are inline by default</strong> — always
+                set <code>display: block</code> or <code>inline-block</code> in
+                :host
+              </li>
+              <li>
+                <strong>:host(selector)</strong> — conditional styles based on
+                attributes or classes
+              </li>
+              <li>
+                <strong>Page styles can still override :host</strong> — external
+                CSS has higher specificity than :host
+              </li>
+            </ul>
+          </div>
+
+          <div class="callout warn">
+            <div class="callout-label">Important</div>
+            <p>
+              Page CSS <strong>can</strong> override <code>:host</code> styles.
+              So <code>my-card { display: none }</code> in your stylesheet will
+              work. Only styles targeting elements <em>inside</em> the shadow
+              are blocked.
+            </p>
+          </div>
+        </section>
+
+        <!-- STEP 6 — CSS Custom Properties -->
+        <section id="step6" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 06</span>
+            <span class="step-label">Let the outside theme the inside</span>
+          </div>
+          <h2>CSS Custom Properties</h2>
+
+          <p>
+            Shadow DOM blocks regular CSS — but
+            <strong>CSS Custom Properties (variables) pierce through</strong>.
+            This is the intentional, clean way to let the outside world theme
+            your component.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">theming through CSS variables</span>
+              <span class="code-lang">CSS + JS</span>
+            </div>
+            <pre><span class="c">/* ── Outside the component (page CSS) ── */</span>
+themed-button {
+  --btn-color:      #c8f542;
+  --btn-background: #111;
+  --btn-radius:     4px;
+}
+
+themed-button.danger {
+  --btn-color:      #fff;
+  --btn-background: #cc3333;
+}
+
+
+<span class="c">/* ── Inside the component (Shadow DOM) ── */</span>
+:host {
+  display: inline-block;
+}
+
+button {
+  color:            var(--btn-color,      #000);  <span class="c">/* fallback after comma */</span>
+  background:       var(--btn-background, #c8f542);
+  border-radius:    var(--btn-radius,     4px);
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 14px;
+}</pre>
+          </div>
+
+          <!-- LIVE DEMO -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label"
+                >Live — same component, different themes</span
+              >
+              <span class="demo-dot"></span>
+            </div>
+            <div class="demo-body" style="gap: 12px; flex-wrap: wrap">
+              <themed-btn-demo></themed-btn-demo>
+              <themed-btn-demo class="danger"></themed-btn-demo>
+              <themed-btn-demo class="ghost"></themed-btn-demo>
+            </div>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">How CSS variables pierce Shadow DOM</div>
+            <ul>
+              <li>
+                <strong>CSS Custom Properties are inherited</strong> — they pass
+                through shadow boundaries
+              </li>
+              <li>
+                <strong>Regular CSS properties do not</strong> —
+                <code>color: red</code> on the host stops at the boundary
+              </li>
+              <li>
+                <strong>Fallback values</strong> —
+                <code>var(--my-var, fallback)</code> ensures the component works
+                without theming
+              </li>
+              <li>
+                This is the <strong>official pattern</strong> for building
+                themeable Web Components
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- STEP 7 — SLOTS -->
+        <section id="step7" class="step">
+          <div class="step-tag">
+            <span class="step-num">STEP 07</span>
+            <span class="step-label">Accept content from outside</span>
+          </div>
+          <h2>Slots</h2>
+
+          <p>
+            A <code>&lt;slot&gt;</code> is a placeholder inside your Shadow DOM
+            where the user's HTML content is projected. The content stays in the
+            Light DOM but appears visually inside your component.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title">named and default slots</span>
+              <span class="code-lang">JS + HTML</span>
+            </div>
+            <pre><span class="c">// ── Component definition ──</span>
+<span class="k">class</span> <span class="f">InfoCard</span> <span class="k">extends</span> HTMLElement {
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()
+    <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+  }
+
+  <span class="f">connectedCallback</span>() {
+    <span class="k">this</span>.shadowRoot.innerHTML = <span class="s">`
+      &lt;style&gt;
+        :host { display: block; border: 1px solid #1e1e1e;
+                border-radius: 8px; overflow: hidden; }
+        header { background: #111; padding: 12px 16px;
+                 border-bottom: 1px solid #1e1e1e; }
+        main   { padding: 16px; color: #a8a8a2; }
+        footer { padding: 10px 16px; border-top: 1px solid #1e1e1e;
+                 font-size: 12px; color: #5a5a54; }
+      &lt;/style&gt;
+
+      &lt;header&gt;
+        &lt;slot name="title"&gt;Default Title&lt;/slot&gt;
+      &lt;/header&gt;
+
+      &lt;main&gt;
+        &lt;slot&gt;&lt;/slot&gt;
+      &lt;/main&gt;
+
+      &lt;footer&gt;
+        &lt;slot name="footer"&gt;No footer provided&lt;/slot&gt;
+      &lt;/footer&gt;
+    `</span>
+  }
+}
+customElements.<span class="f">define</span>(<span class="s">"info-card"</span>, InfoCard)
+
+
+<span class="c">&lt;!-- ── Usage in HTML ── --&gt;</span>
+&lt;<span class="f">info-card</span>&gt;
+  &lt;span slot=<span class="s">"title"</span>&gt;My Card Title&lt;/span&gt;
+  &lt;p&gt;This is the body content of the card.&lt;/p&gt;
+  &lt;span slot=<span class="s">"footer"</span>&gt;Last updated: today&lt;/span&gt;
+&lt;/<span class="f">info-card</span>&gt;</pre>
+          </div>
+
+          <!-- LIVE DEMO -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label">Live — slots in action</span>
+              <span class="demo-dot"></span>
+            </div>
+            <div
+              class="demo-body"
+              style="gap: 16px; align-items: flex-start; flex-wrap: wrap"
+            >
+              <slot-card-demo style="width: 260px">
+                <span slot="title">Shadow DOM</span>
+                <p>
+                  Slots project Light DOM content into the Shadow DOM visually.
+                </p>
+                <span slot="footer">Step 07 demo</span>
+              </slot-card-demo>
+              <slot-card-demo style="width: 260px">
+                <span slot="title">No Footer</span>
+                <p>
+                  This card has no footer slot — the default text shows instead.
+                </p>
+              </slot-card-demo>
+            </div>
+          </div>
+
+          <div class="explain">
+            <div class="explain-title">How slots work</div>
+            <ul>
+              <li>
+                <strong>&lt;slot&gt;</strong> — default slot, catches any
+                unassigned content
+              </li>
+              <li>
+                <strong>&lt;slot name="x"&gt;</strong> — named slot, only
+                catches <code>slot="x"</code> content
+              </li>
+              <li>
+                <strong>Fallback content</strong> — text inside
+                <code>&lt;slot&gt;</code> shows when nothing is projected
+              </li>
+              <li>
+                Slotted content stays in the <strong>Light DOM</strong> — it is
+                projected visually, not moved
+              </li>
+              <li>
+                You can still style slotted content with
+                <code>::slotted(selector)</code>
+              </li>
+            </ul>
+          </div>
+
+          <div class="callout">
+            <div class="callout-label">Flow-Arch note</div>
+            <p>
+              Slots are powerful but add complexity to the state model. In
+              Flow-Arch demos, we generally avoid slots and pass all data
+              through attributes and state instead. Slots are best for
+              layout/wrapper components, not data-driven components.
+            </p>
+          </div>
+        </section>
+
+        <!-- FULL EXAMPLE -->
+        <section id="full" class="step">
+          <div class="step-tag">
+            <span class="step-num">COMPLETE</span>
+            <span class="step-label">Everything together</span>
+          </div>
+          <h2>Full Example</h2>
+
+          <p>
+            A complete component using all Shadow DOM concepts: isolation,
+            <code>:host</code>, CSS variables for theming, and clean scoped
+            styles.
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span class="code-title"
+                >flow-badge.js — complete shadow dom component</span
+              >
+              <span class="code-lang">JS</span>
+            </div>
+            <pre><span class="k">class</span> <span class="f">FlowBadge</span> <span class="k">extends</span> HTMLElement {
+
+  <span class="f">constructor</span>() {
+    <span class="k">super</span>()
+    <span class="k">this</span>.<span class="f">attachShadow</span>({ mode: <span class="s">"open"</span> })
+  }
+
+  <span class="c">// Re-render when these attributes change</span>
+  <span class="k">static</span> <span class="f">get</span> observedAttributes() {
+    <span class="k">return</span> [<span class="s">"label"</span>, <span class="s">"count"</span>]
+  }
+
+  <span class="f">attributeChangedCallback</span>() {
+    <span class="k">this</span>.<span class="f">render</span>()
+  }
+
+  <span class="f">connectedCallback</span>() {
+    <span class="k">this</span>.<span class="f">render</span>()
+  }
+
+  <span class="f">render</span>() {
+    <span class="k">const</span> label = <span class="k">this</span>.<span class="f">getAttribute</span>(<span class="s">"label"</span>) || <span class="s">"badge"</span>
+    <span class="k">const</span> count = <span class="k">this</span>.<span class="f">getAttribute</span>(<span class="s">"count"</span>) || <span class="s">""</span>
+
+    <span class="k">this</span>.shadowRoot.innerHTML = <span class="s">`
+      &lt;style&gt;
+        /* :host controls outer layout */
+        :host {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        /* CSS variables let the page theme this component */
+        .badge {
+          background: var(--badge-bg, #1e1e1e);
+          color:      var(--badge-color, #c8f542);
+          border:     1px solid var(--badge-border, #2a2a2a);
+          padding: 4px 10px;
+          border-radius: 100px;
+          font-family: monospace;
+          font-size: 12px;
+          letter-spacing: 0.05em;
+        }
+
+        /* Scoped — only affects .count inside THIS component */
+        .count {
+          background: var(--badge-color, #c8f542);
+          color:      var(--badge-bg, #000);
+          padding: 2px 8px;
+          border-radius: 100px;
+          font-family: monospace;
+          font-size: 11px;
+          font-weight: 500;
+        }
+      &lt;/style&gt;
+
+      &lt;span class="badge"&gt;${label}&lt;/span&gt;
+      ${count ? <span class="s">`&lt;span class="count"&gt;${count}&lt;/span&gt;`</span> : <span class="s">""</span>}
+    `</span>
+  }
+}
+
+customElements.<span class="f">define</span>(<span class="s">"flow-badge"</span>, FlowBadge)</pre>
+          </div>
+
+          <!-- LIVE DEMO -->
+          <div class="demo-box">
+            <div class="demo-box-header">
+              <span class="demo-box-label">Live — flow-badge component</span>
+              <span class="demo-dot"></span>
+            </div>
+            <div
+              class="demo-body"
+              style="
+                gap: 12px;
+                flex-wrap: wrap;
+                flex-direction: column;
+                align-items: flex-start;
+              "
+            >
+              <!-- default theme from CSS variables defined below -->
+              <div
+                style="
+                  display: flex;
+                  gap: 10px;
+                  flex-wrap: wrap;
+                  align-items: center;
+                "
+              >
+                <flow-badge-demo label="web component"></flow-badge-demo>
+                <flow-badge-demo
+                  label="shadow dom"
+                  count="07"
+                ></flow-badge-demo>
+                <flow-badge-demo
+                  label="pure function"
+                  count="✓"
+                ></flow-badge-demo>
+              </div>
+              <!-- custom themed row -->
+              <div
+                id="themed-row"
+                style="
+                  display: flex;
+                  gap: 10px;
+                  flex-wrap: wrap;
+                  align-items: center;
+                "
+              >
+                <flow-badge-demo
+                  label="custom theme"
+                  count="→"
+                ></flow-badge-demo>
+                <flow-badge-demo
+                  label="css variables"
+                  count="✓"
+                ></flow-badge-demo>
+              </div>
+            </div>
+          </div>
+
+          <div class="next-banner">
+            <div class="next-banner-text">
+              <strong>You finished the Shadow DOM tutorial.</strong>
+              Next: learn about Pure Functions.
+            </div>
+            <a href="index.html#purefn" class="btn btn-primary">Continue →</a>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+     LIVE DEMO COMPONENTS
+═══════════════════════════════════════ -->
+    <script type="module">
+      // ── Step 1: no shadow — shows collision ──
+      class NoShadowDemo extends HTMLElement {
+        connectedCallback() {
+          this.innerHTML = `<p>← I am inside a component (no Shadow DOM). Page CSS bleeds in.</p>`;
+        }
+      }
+      customElements.define("no-shadow-demo", NoShadowDemo);
+
+      // ── Step 3: shadow protects from page CSS ──
+      class ShadowDemo3 extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+        }
+        connectedCallback() {
+          this.shadowRoot.innerHTML = `
+        <style> p { color: #c8f542; font-family: monospace; font-size: 15px; } </style>
+        <p>← I am inside Shadow DOM. Page CSS cannot reach me.</p>
+      `;
+        }
+      }
+      customElements.define("shadow-demo-3", ShadowDemo3);
+
+      // ── Step 4a: green card ──
+      class ShadowDemo4a extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+        }
+        connectedCallback() {
+          this.shadowRoot.innerHTML = `
+        <style>
+          :host { display: block; }
+          p { color: #c8f542; font-family: monospace; font-size: 14px;
+              padding: 12px 16px; border-left: 2px solid #c8f542;
+              background: rgba(200,245,66,0.05); border-radius: 0 6px 6px 0; }
+        </style>
+        <p>Component A — green style. Cannot escape this shadow.</p>
+      `;
+        }
+      }
+      customElements.define("shadow-demo-4a", ShadowDemo4a);
+
+      // ── Step 4b: blue card ──
+      class ShadowDemo4b extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+        }
+        connectedCallback() {
+          this.shadowRoot.innerHTML = `
+        <style>
+          :host { display: block; }
+          p { color: #7ecfcf; font-family: monospace; font-size: 14px;
+              padding: 12px 16px; border-left: 2px solid #7ecfcf;
+              background: rgba(126,207,207,0.05); border-radius: 0 6px 6px 0; }
+        </style>
+        <p>Component B — blue style. Cannot escape this shadow either.</p>
+      `;
+        }
+      }
+      customElements.define("shadow-demo-4b", ShadowDemo4b);
+
+      // ── Step 5: :host with theme attribute ──
+      class HostDemo extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+        }
+        connectedCallback() {
+          const theme = this.getAttribute("theme") || "dark";
+          this.shadowRoot.innerHTML = `
+        <style>
+          :host { display: block; border-radius: 8px; padding: 16px 20px;
+                  width: 160px; font-family: monospace; font-size: 13px; }
+          :host([theme="dark"])  { background: #111; color: #c8f542; border: 1px solid #2a2a2a; }
+          :host([theme="light"]) { background: #f0f0e8; color: #1a1a1a; border: 1px solid #ccc; }
+          .label { font-size: 10px; letter-spacing: 0.1em; opacity: 0.6;
+                   text-transform: uppercase; margin-bottom: 6px; }
+        </style>
+        <div class="label">theme="${theme}"</div>
+        <div>:host in action</div>
+      `;
+        }
+      }
+      customElements.define("host-demo", HostDemo);
+
+      // ── Step 6: CSS variable theming ──
+      class ThemedBtnDemo extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+        }
+        connectedCallback() {
+          this.shadowRoot.innerHTML = `
+        <style>
+          :host { display: inline-block; }
+          button {
+            color:         var(--btn-color, #000);
+            background:    var(--btn-bg, #c8f542);
+            border:        1px solid var(--btn-border, transparent);
+            border-radius: var(--btn-radius, 4px);
+            padding: 10px 20px;
+            font-family: monospace; font-size: 13px;
+            cursor: pointer; transition: opacity 0.15s;
+          }
+          button:hover { opacity: 0.8; }
+        </style>
+        <button>Click me</button>
+      `;
+        }
+      }
+      customElements.define("themed-btn-demo", ThemedBtnDemo);
+
+      // Apply CSS variables for themed demos via inline style on the host
+      document.querySelectorAll("themed-btn-demo.danger").forEach((el) => {
+        el.style.cssText =
+          "--btn-color:#fff; --btn-bg:#cc3333; --btn-border:#cc3333;";
+      });
+      document.querySelectorAll("themed-btn-demo.ghost").forEach((el) => {
+        el.style.cssText =
+          "--btn-color:#c8f542; --btn-bg:transparent; --btn-border:#c8f542;";
+      });
+
+      // ── Step 7: Slots ──
+      class SlotCardDemo extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+        }
+        connectedCallback() {
+          this.shadowRoot.innerHTML = `
+        <style>
+          :host { display: block; border: 1px solid #1e1e1e; border-radius: 8px;
+                  overflow: hidden; font-family: monospace; }
+          header { background: #111; padding: 10px 14px; border-bottom: 1px solid #1e1e1e;
+                   font-size: 13px; color: #c8f542; }
+          main   { padding: 14px; font-size: 13px; color: #a8a8a2; }
+          footer { padding: 8px 14px; border-top: 1px solid #1e1e1e;
+                   font-size: 11px; color: #5a5a54; }
+        </style>
+        <header><slot name="title">Default Title</slot></header>
+        <main><slot></slot></main>
+        <footer><slot name="footer">No footer provided</slot></footer>
+      `;
+        }
+      }
+      customElements.define("slot-card-demo", SlotCardDemo);
+
+      // ── Full: flow-badge ──
+      class FlowBadgeDemo extends HTMLElement {
+        constructor() {
+          super();
+          this.attachShadow({ mode: "open" });
+        }
+        static get observedAttributes() {
+          return ["label", "count"];
+        }
+        attributeChangedCallback() {
+          if (this.isConnected) this.render();
+        }
+        connectedCallback() {
+          this.render();
+        }
+        render() {
+          const label = this.getAttribute("label") || "badge";
+          const count = this.getAttribute("count") || "";
+          this.shadowRoot.innerHTML = `
+        <style>
+          :host { display: inline-flex; align-items: center; gap: 6px; }
+          .badge {
+            background: var(--badge-bg, #1e1e1e);
+            color:      var(--badge-color, #c8f542);
+            border:     1px solid var(--badge-border, #2a2a2a);
+            padding: 4px 10px; border-radius: 100px;
+            font-family: monospace; font-size: 12px; letter-spacing: 0.05em;
+          }
+          .count {
+            background: var(--badge-color, #c8f542);
+            color:      var(--badge-bg, #000);
+            padding: 2px 8px; border-radius: 100px;
+            font-family: monospace; font-size: 11px; font-weight: 500;
+          }
+        </style>
+        <span class="badge">${label}</span>
+        ${count ? `<span class="count">${count}</span>` : ""}
+      `;
+        }
+      }
+      customElements.define("flow-badge-demo", FlowBadgeDemo);
+
+      // Apply custom theme to the second row
+      document.querySelectorAll("#themed-row flow-badge-demo").forEach((el) => {
+        el.style.cssText =
+          "--badge-bg:#1a0a30; --badge-color:#b09af0; --badge-border:#3a2a60;";
+      });
+
+      // Sidebar active highlight
+      const sections = document.querySelectorAll("section[id]");
+      const links = document.querySelectorAll(".sidebar-nav a");
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              links.forEach((l) => l.classList.remove("active"));
+              const a = document.querySelector(
+                `.sidebar-nav a[href="#${e.target.id}"]`,
+              );
+              if (a) a.classList.add("active");
+            }
+          });
+        },
+        { threshold: 0.35 },
+      );
+      sections.forEach((s) => obs.observe(s));
+    </script>
+  </body>
+</html>
