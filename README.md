@@ -308,8 +308,8 @@ If you applied declarative pure function patterns in your own project and want t
 1. **Open a Discussion** in this repository and describe what you built and what you learned
 2. **Mention `@flow-arch-dev`** in your own repository's README, Issues, or PRs —
    GitHub will notify the maintainer and create a visible connection
-3. Add the topic tag `flow-arch` to your GitHub repository
-   (Repository Settings → Topics → add `flow-arch`) —
+3. Add the topic tag `flow-arch-dev` to your GitHub repository
+   (Repository Settings → Topics → add `flow-arch-dev`) —
    this makes your repo discoverable via GitHub topic search
 
 > **How `@flow-arch-dev` notifications work:**
