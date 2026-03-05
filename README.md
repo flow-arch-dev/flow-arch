@@ -75,55 +75,59 @@ flow-arch/
 
 The methodology combines four browser-native ideas into one discipline:
 
-| Concept | Role |
-|---------|------|
-| **Web Components** | Custom elements — zero dependencies, native browser standard |
-| **Shadow DOM** | True style and DOM encapsulation — no CSS leaks |
-| **Pure Functions** | Reducer + View — deterministic, testable, no side effects |
-| **Unidirectional Data Flow** | State → View → Action → Reducer → new State |
+| Concept                      | Role                                                         |
+| ---------------------------- | ------------------------------------------------------------ |
+| **Web Components**           | Custom elements — zero dependencies, native browser standard |
+| **Shadow DOM**               | True style and DOM encapsulation — no CSS leaks              |
+| **Pure Functions**           | Reducer + View — deterministic, testable, no side effects    |
+| **Unidirectional Data Flow** | State → View → Action → Reducer → new State                  |
 
 The pattern in every vanilla-flow component:
 
 ```javascript
 // 1. State — plain object, single source of truth
-const createInitialState = () => ({ count: 0 })
+const createInitialState = () => ({ count: 0 });
 
 // 2. Reducer — pure function, all logic lives here
 const reducer = (state, action) => {
   switch (action.type) {
-    case "INCREMENT": return { ...state, count: state.count + 1 }
-    default:          return state
+    case "INCREMENT":
+      return { ...state, count: state.count + 1 };
+    default:
+      return state;
   }
-}
+};
 
 // 3. View — pure function, state in → HTML string out
 const view = (state) => `
   <div class="count">${state.count}</div>
   <button data-action="INCREMENT">+</button>
-`
+`;
 
 // 4. Web Component — the only place side effects live
 class FlowCounter extends HTMLElement {
   constructor() {
-    super()
-    this.attachShadow({ mode: "open" })
-    this.state = createInitialState()
+    super();
+    this.attachShadow({ mode: "open" });
+    this.state = createInitialState();
     this.dispatch = (action) => {
-      this.state = reducer(this.state, action)
-      this.render()
-    }
+      this.state = reducer(this.state, action);
+      this.render();
+    };
   }
   connectedCallback() {
-    this.render()
+    this.render();
     this.shadowRoot.addEventListener("click", (e) => {
-      const type = e.target.dataset.action
-      if (type) this.dispatch({ type })
-    })
+      const type = e.target.dataset.action;
+      if (type) this.dispatch({ type });
+    });
   }
-  render() { this.shadowRoot.innerHTML = view(this.state) }
+  render() {
+    this.shadowRoot.innerHTML = view(this.state);
+  }
 }
 
-customElements.define("flow-counter", FlowCounter)
+customElements.define("flow-counter", FlowCounter);
 ```
 
 **Official demos** live in `flow-vanilla/frontend/demos/` — covering vanilla JS/TS, and reference
@@ -183,6 +187,7 @@ This folder is intentionally vague. If you have an idea that belongs here, open 
 **Beginner tutorials.** Linked from the main homepage.
 
 Currently covers:
+
 - What is a Web Component? (with live demos)
 - What is Shadow DOM?
 - Pure functions vs impure functions
@@ -190,6 +195,24 @@ Currently covers:
 - The complete Flow-Arch loop
 
 If you find an explanation unclear, improving `flow-starter` content is a welcome contribution.
+
+Beginner tutorials linked from the main homepage.
+
+| Tutorial                                        | Topic                                                                                  |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [tutorial-00](./flow-starter/tutorials/T-00.md) | Declarative thinking & pure functions — the foundation                                 |
+| [tutorial-01](./flow-starter/tutorials/T-01.md) | Why `for` / `while` / `if` Make Your Brain Work Harder                                 |
+| [tutorial-02](./flow-starter/tutorials/T-02.md) | Pure Functions: What They Really Are (And What Breaks Them)Harder                      |
+| [tutorial-03](./flow-starter/tutorials/T-03.md) | Lazy Evaluation: Why `.map()` Is Eager and What To Do About It                         |
+| Harder                                          |
+| [tutorial-04](./flow-starter/tutorials/T-04.md) | Eager vs Lazy: What They Are, Every Lazy Pattern, and Why flow-arch Cares              |
+|                                                 |
+| [tutorial-05](./flow-starter/tutorials/T-05.md) | The Syntax Reference: Every Tool, What It Does, and Where It Belongs in flow-arch      |
+| [tutorial-06](./flow-starter/tutorials/T-06.md) | Loops Dissected: `for`, `for/in`, `while`, `do/while` and Their flow-arch Replacements |
+|                                                 |
+
+<!-- | [tutorial-01](./flow-starter/tutorial-01.md) | What is a Web Component? | -->
+<!-- | [tutorial-02](./flow-starter/tutorial-02.md) | Shadow DOM and style isolation | -->
 
 ---
 
@@ -211,11 +234,11 @@ All community contributions live under `community/`.
 
 ### Where to put your work
 
-| You are contributing... | Put it here |
-|-------------------------|-------------|
-| A frontend demo using vanilla-flow patterns | `community/flow-vanilla/` |
-| A backend / data pipeline demo | `community/flow-core/` |
-| An experimental idea | `community/flow-vanilla/` or open a Discussion first |
+| You are contributing...                     | Put it here                                          |
+| ------------------------------------------- | ---------------------------------------------------- |
+| A frontend demo using vanilla-flow patterns | `community/flow-vanilla/`                            |
+| A backend / data pipeline demo              | `community/flow-core/`                               |
+| An experimental idea                        | `community/flow-vanilla/` or open a Discussion first |
 
 ### Naming convention
 
@@ -232,37 +255,45 @@ Examples:
 
 ### Every community demo must include a README.md
 
-```markdown
+````markdown
 # [Demo Name]
 
 ## What this explores
+
 One or two sentences about the concept or problem this demo addresses.
 
 ## Language & environment
+
 - Language: TypeScript 5.x / Haskell GHC 9.x / Elixir 1.x / etc.
 - Runtime: Node 20 / Bun / Deno / GHC / Beam VM / etc.
 - Dependencies: none / list them with versions
 
 ## Setup
+
 ```bash
 # exact commands to run this demo
 npm install   # only if unavoidable — explain why
 open index.html
 ```
+````
 
 ## How it follows Flow-Arch principles
+
 - [ ] Pure reducer / transformation functions
 - [ ] View or output is a pure function of input
 - [ ] Side effects isolated at boundary
 - [ ] No hidden state
 
 ## What I found
+
 Honest observations. What worked, what didn't, what surprised you.
 Known limitations of this specific demo.
 If you hit a wall, document the wall — that is valuable data.
 
 ## Known issues
+
 List anything incomplete, broken, or not yet solved.
+
 ```
 
 The **"What I found"** section is the most important part of any community README.
@@ -321,10 +352,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full guide.
 The short version:
 
 ```
+
 1. Fork the repo
 2. Create your demo in community/flow-vanilla/ or community/flow-core/
 3. Include a README.md with "What I found"
 4. Open a Pull Request
+
 ```
 
 Questions? Open a [GitHub Discussion](../../discussions). No question is too basic.
@@ -338,3 +371,4 @@ See [LICENSE](./LICENSE).
 ---
 
 *Flow-Arch is not a framework. It is a way of thinking about data.*
+```
