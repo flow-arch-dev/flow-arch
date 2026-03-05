@@ -294,8 +294,6 @@ If you hit a wall, document the wall — that is valuable data.
 
 List anything incomplete, broken, or not yet solved.
 
-```
-
 The **"What I found"** section is the most important part of any community README.
 Failures and limitations documented honestly are more valuable than polished successes.
 
@@ -370,5 +368,4 @@ See [LICENSE](./LICENSE).
 
 ---
 
-*Flow-Arch is not a framework. It is a way of thinking about data.*
-```
+_Flow-Arch is not a framework. It is a way of thinking about data._
